@@ -42,7 +42,7 @@ export const actions = {
         
         if (!user_db || !user_db.password) {
             console.log("login db user select empty response", error);
-            error(500, 'user select empty response');
+            return fail(400, {error: 'Wrong username or password'});
         }
 
 
