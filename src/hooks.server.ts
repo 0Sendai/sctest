@@ -10,7 +10,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.db = db;
     
     const token = event.cookies.get('session_token');
-    console.log(token);
+    //console.log(token);
     if (token) {
         try {
             const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
@@ -33,8 +33,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
 
     const path: string = event.url.pathname.split('/')[1];
-    console.log(event.url.pathname.split('/'));
-    console.log(path);
+    //console.log(event.url.pathname.split('/'));
+    //console.log(path);
     switch(path) {
         case 'admin': {
             if (event.locals.user.role !== 'admin')
