@@ -55,6 +55,14 @@
                 </ul>
             {/if}
         </div>
+
+        <a href="/teacher" class="btn-back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Назад
+        </a>
     </div>
 </div>
 
@@ -218,6 +226,31 @@
     .assignment-title {
         font-size: 1rem;
         font-weight: 500;
+        color: #374151;
+    }
+
+    .btn-back {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        background: white;
+        color: #6b7280;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        margin-top: 1rem;
+        box-sizing: border-box;
+    }
+
+    .btn-back:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
         color: #374151;
     }
 </style>
