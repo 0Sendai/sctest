@@ -7,15 +7,19 @@
         type: 'quiz' | 'text';
         question: string;
         variants: string[];
+        correctVariantIndex?: number;  // индекс правильного варианта для quiz
+        correctAnswer?: string;        // правильный ответ для text
     }
 
     let slides = $state<Slide[]>([{
         type: 'quiz',
         question: '',
         variants: [''],
+        correctVariantIndex: 0,
+        correctAnswer: '',
     }]);
 
-    let hiddenValue = $state('');
+    let hiddenValue = $derived(JSON.stringify(slides));
     let title = $state('');
     let errorMsg = $state({ title: '', slides: [] as string[] });
 
@@ -24,16 +28,14 @@
             type: 'quiz',
             question: '',
             variants: [''],
+            correctVariantIndex: 0,
+            correctAnswer: '',
         });
     }
 
     function removeSlide(index: number) {
         if (slides.length <= 1) return;
         slides.splice(index, 1);
-    }
-
-    function updateSlide(index: number, field: keyof Slide, value: any) {
-        slides[index][field] = value;
     }
 
     function updateVariant(slideIndex: number, variantIndex: number, value: string) {
@@ -70,6 +72,9 @@
                 ? 'Заполните все варианты'
                 : errorMsg.slides[index];
         }
+        if (slide.type === 'text' && !slide.correctAnswer) {
+            errorMsg.slides[index] = 'Укажите правильный ответ';
+        }
         return !errorMsg.slides[index];
     }
 
@@ -84,16 +89,11 @@
         return allValid;
     }
 
-    function updateHiddenInput() {
-        hiddenValue = JSON.stringify(slides);
-    }
-
     function enhanceFunc({ cancel }: { cancel: () => void }) {
         if (!validateAll()) {
             cancel();
             return;
         }
-        updateHiddenInput();
     }
 
     function disableEnter(e: KeyboardEvent) {
@@ -147,13 +147,6 @@
             <div class="slides-section">
                 <div class="section-header">
                     <div class="section-label">Слайды</div>
-                    <button type="button" onclick={addSlide} class="btn-add-slide">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
-                        Добавить слайд
-                    </button>
                 </div>
 
                 {#each slides as slide, index}
@@ -208,6 +201,13 @@
                                             placeholder={`Вариант ${variantIndex + 1}`}
                                             class:error={errorMsg.slides[index]}
                                             onkeydown={(e) => handleVariantEnter(index, e)}/>
+                                        <label class="correct-answer-label" title="Правильный ответ">
+                                            <input
+                                                type="radio"
+                                                checked={slide.correctVariantIndex === variantIndex}
+                                                onchange={() => { slide.correctVariantIndex = variantIndex; }}/>
+                                            <span class="radio-custom"></span>
+                                        </label>
                                         <button type="button" onclick={() => removeVariant(index, variantIndex)} class="btn-remove-variant" aria-label="Удалить вариант">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -225,11 +225,36 @@
                                 </button>
                             </div>
                         {/if}
+
+                        {#if slide.type === 'text'}
+                            <div class="form-group">
+                                <label for={`correct-answer-${index}`}>Правильный ответ</label>
+                                <input
+                                    type="text"
+                                    id={`correct-answer-${index}`}
+                                    bind:value={slide.correctAnswer}
+                                    placeholder="Введите правильный ответ"
+                                    class:error={errorMsg.slides[index]}
+                                    onkeydown={disableEnter}
+                                    autocomplete="off"/>
+                                {#if errorMsg.slides[index]}
+                                    <span class="field-error">{errorMsg.slides[index]}</span>
+                                {/if}
+                            </div>
+                        {/if}
                     </div>
                 {/each}
             </div>
 
             <input type="hidden" id="slides-json" name="slides" bind:value={hiddenValue}/>
+
+            <button type="button" onclick={addSlide} class="btn-add-slide">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Добавить слайд
+            </button>
 
             <button type="submit" class="btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -537,6 +562,50 @@
     .btn-add-variant:hover {
         background: #f0f7ff;
         border-style: solid;
+    }
+
+    .correct-answer-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    .correct-answer-label input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .radio-custom {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .correct-answer-label input[type="radio"]:checked + .radio-custom {
+        border-color: #7aa3c4;
+        background: #7aa3c4;
+    }
+
+    .correct-answer-label input[type="radio"]:checked + .radio-custom::after {
+        content: '';
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+    }
+
+    .correct-answer-label:hover .radio-custom {
+        border-color: #8eb1d1;
     }
 
     .btn-primary {

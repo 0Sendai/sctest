@@ -1,44 +1,111 @@
-import { fail } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import type { InferInsertModel } from 'drizzle-orm';
 
-type Quiz = {
+import { assignments, slides } from '$lib/server/db/schema';
+
+type Slide = {
     type: string;
     question: string;
     variants: string[];
+    correctVariantIndex: number;
+    correctAnswer: string;
 };
 
-type TextAnswer = {
-    type: string;
-    question: string;
+type SlidesJson = Slide[];
+
+type AssignmentDb = {
+    title: string;
+    author_id: number;
 };
 
-async function parseForm(form: FormData): Promise<Quiz | TextAnswer | null> {
-    const type = form.get('type');
-    const question = form.get('question');
-    console.log(form);
-    if (!question || !(typeof question === 'string') ||
-        !type     || !(typeof type     === 'string'))
+type SlideDb = InferInsertModel<typeof slides>;
+
+function checkForString(variable: any): boolean {
+    if (typeof variable !== 'string')
+        return false;
+    return true;
+}
+
+async function parseForm(form: FormData): Promise<[string, SlideDb[]] | null> {
+    const title = form.get('title');
+    if (!checkForString(title)) {
+        console.log("title is not a string");
         return null;
-
-    console.log("after question");
-    if (type === 'quiz') {
-        const variants = await form.getAll('variants');
-        
-        if (!variants.every((variant: FormDataEntryValue) => 
-                            (variant && (typeof variant === 'string'))))
-             return null;
-     
-        console.log("ret quiz");
-        return {
-            question: question,
-            variants: variants as string[],
-            type: type,
-        };
     }
-    console.log("ret text");
-    return {
-        question: question,
-        type: type,
-    };
+
+    const slides_json = form.get('slides');
+    if (!checkForString(slides_json)) {
+        console.log("slides is not a string");
+        return null;
+    }
+
+    let slidesJson: SlidesJson;
+    try {
+        slidesJson = JSON.parse(slides_json as string) as SlidesJson;
+    } catch (error) {
+        console.log("can't parse json");
+        return null;
+    }
+    console.log("slidesJson: ", slidesJson);
+    if (!slidesJson || slidesJson.length === 0) {
+        console.log("bad slidesJson after parsing json");
+        return null;
+    }
+
+    let slideDb: SlideDb[] = [];
+    for (let index = 0; index < slidesJson.length; index++) {
+        const slide = slidesJson[index];
+        if (!slide || !slide.type || !(typeof slide.type === 'string')) {
+            console.log("bad slide type");
+            return null;
+        }
+        if (!checkForString(slide.question)) {
+            console.log("bad slide question");
+            return null;
+        }
+        
+        if (slide.type === 'text') {
+            if (!checkForString(slide.correctAnswer)) {
+                console.log("Bad correct answer");
+                return null;
+            }
+            slideDb.push({
+                assignment_id: '',
+                type: slide.type,
+                position: index,
+                content: {
+                    question: slide.question,
+                    correctAnswer: slide.correctAnswer,
+                },
+            });
+        } else if (slide.type === 'quiz') {
+            if (!slide.variants || slide.variants.length === 0) {
+                console.log("bad variants");
+                return null;
+            }
+            if (typeof slide.correctVariantIndex !== 'number' ||
+                slide.correctVariantIndex < 0 ||
+                slide.correctVariantIndex >= slide.variants.length) {
+                console.log("bad correct variant index");
+                return null;
+            }
+            slideDb.push({
+                assignment_id: '',
+                type: slide.type,
+                position: index,
+                content: {
+                    question: slide.question,
+                    variants: slide.variants,
+                    correctVariantIndex: slide.correctVariantIndex,
+                },
+            });
+        } else {
+            console.log("unknown type");
+            return null;
+        }
+    }
+
+    return [title as string, slideDb]; 
 }
 
 export const actions = {
@@ -53,13 +120,46 @@ export const actions = {
         }
 
         console.log(form)
-        // if (data.type === 'quiz') {
-        //     console.log("quiz: ", data);
-        // }
-        // if (data.type === 'text') {
-        //     console.log("text: ", data);
-        // }
-        //console.log(data);
+        const parsedForm = await parseForm(form);
+        if (!parsedForm) {
+            console.log("parse form error");
+            return fail(500, {error: 'parse form error'});
+        }
+        const [title, slideDb] = parsedForm;
+
+        console.log(`title: ${title}`);
+        console.log('slideDb: ', slideDb);
+
+
+        console.log("inserting into db");
+        if (!locals.user) {
+            console.log("no locals.user");
+            return fail(500, {error: "no locals.user"});
+        }
+        const user = locals.user;
+
+        try {
+            await locals.db.transaction(async (tx) => {
+                let [assignment] = await tx.insert(assignments)
+                    .values({
+                        title: title,
+                        author_id: user.id,
+                    }).returning({id: assignments.id});
+
+                if (typeof assignment.id !==  'string' ) {
+                    console.log("bad assignment_id");
+                    tx.rollback();
+                }
+                slideDb.forEach((slide: SlideDb) => {slide.assignment_id = assignment.id});
+                await tx.insert(slides).values(slideDb);
+            })
+        } catch (error) {
+            console.log("db insertion error: ", error);
+            return fail(500, "db insertion error");
+        }
+
+        console.log("assignment successfully inserted!");
+        redirect(303, '/teacher/assignments');
         
     },
 };
