@@ -44,19 +44,21 @@ async function parseForm(form: FormData): Promise<Quiz | TextAnswer | null> {
 export const actions = {
     default: async ({ request, locals }) => {
         const form = await request.formData();
-        const data: TextAnswer | Quiz | null = await parseForm(form);
-        if (!data) {
-            console.log("error while parsing ");
+        //const data: TextAnswer | Quiz | null = await parseForm(form);
+        // if (!data) {
+        //     console.log("error while parsing ");
         //if (!validateData(data))
+        if (!form) {
             return fail(406, {error: 'empty question or variants'});
         }
 
-        if (data.type === 'quiz') {
-            console.log("quiz: ", data);
-        }
-        if (data.type === 'text') {
-            console.log("text: ", data);
-        }
+        console.log(form)
+        // if (data.type === 'quiz') {
+        //     console.log("quiz: ", data);
+        // }
+        // if (data.type === 'text') {
+        //     console.log("text: ", data);
+        // }
         //console.log(data);
         
     },
