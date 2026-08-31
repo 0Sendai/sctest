@@ -1,12 +1,23 @@
 import { fail } from '@sveltejs/kit';
 
-async function parseForm(form: FormData) {
+type Quiz = {
+    type: string;
+    question: string;
+    variants: string[];
+};
+
+type TextAnswer = {
+    type: string;
+    question: string;
+};
+
+async function parseForm(form: FormData): Promise<Quiz | TextAnswer | null> {
     const type = form.get('type');
     const question = form.get('question');
     console.log(form);
     if (!question || !(typeof question === 'string') ||
         !type     || !(typeof type     === 'string'))
-        return {};
+        return null;
 
     console.log("after question");
     if (type === 'quiz') {
@@ -14,12 +25,12 @@ async function parseForm(form: FormData) {
         
         if (!variants.every((variant: FormDataEntryValue) => 
                             (variant && (typeof variant === 'string'))))
-             return {};
+             return null;
      
         console.log("ret quiz");
         return {
             question: question,
-            variants: variants,
+            variants: variants as string[],
             type: type,
         };
     }
@@ -31,14 +42,22 @@ async function parseForm(form: FormData) {
 }
 
 export const actions = {
-    default: async ({ request }) => {
+    default: async ({ request, locals }) => {
         const form = await request.formData();
-        const data = await parseForm(form);
+        const data: TextAnswer | Quiz | null = await parseForm(form);
         if (!data) {
             console.log("error while parsing ");
         //if (!validateData(data))
             return fail(406, {error: 'empty question or variants'});
         }
-        console.log(data);
+
+        if (data.type === 'quiz') {
+            console.log("quiz: ", data);
+        }
+        if (data.type === 'text') {
+            console.log("text: ", data);
+        }
+        //console.log(data);
+        
     },
 };
