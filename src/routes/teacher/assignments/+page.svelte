@@ -1,11 +1,223 @@
 <script lang="ts">
+    import { page } from '$app/state';
+
     let { data } = $props();
+    const path = page.url.pathname;
 </script>
 
-<h1>list of assignments</h1>
+<div class="assignments-container">
+    <div class="assignments-card">
+        <div class="assignments-header">
+            <div class="header-top">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <h1>Задания</h1>
+                    <p class="subtitle">Ваши созданные задания</p>
+                </div>
+            </div>
 
-<ul>
-    {#each data.assignments as assignment}
-        <li>{assignment.title}</li>  
-    {/each}
-</ul>
+            <a href={path + '/new'} class="btn-add">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Новое задание
+            </a>
+        </div>
+
+        <div class="assignments-list">
+            {#if data.assignments?.length === 0}
+                <div class="empty-state">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                    <p>Заданий пока нет</p>
+                </div>
+            {:else}
+                <ul>
+                    {#each data.assignments as assignment, index}
+                        <li class="assignment-item" style="animation-delay: {index * 0.05}s">
+                            <div class="assignment-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                </svg>
+                            </div>
+                            <span class="assignment-title">{assignment.title}</span>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+        </div>
+    </div>
+</div>
+
+<style>
+    .assignments-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f8fc 0%, #eef2f7 100%);
+        padding: 2rem 1rem;
+    }
+
+    .assignments-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                    0 0 0 1px rgba(142, 177, 209, 0.1);
+        padding: 2.5rem;
+        width: 100%;
+        max-width: 600px;
+        animation: slideUp 0.4s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .assignments-header {
+        margin-bottom: 2rem;
+    }
+
+    .header-top {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .logo-icon {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .header-text h1 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0 0 0.25rem;
+    }
+
+    .subtitle {
+        color: #6b7280;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .btn-add {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .btn-add:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(142, 177, 209, 0.4);
+    }
+
+    .assignments-list {
+        margin-top: 1.5rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6b7280;
+    }
+
+    .empty-state svg {
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .empty-state p {
+        margin: 0;
+        font-size: 1rem;
+    }
+
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .assignment-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 1.25rem;
+        background: #f8fafc;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s;
+        animation: fadeIn 0.3s ease-out forwards;
+        opacity: 0;
+    }
+
+    @keyframes fadeIn {
+        to {
+            opacity: 1;
+        }
+    }
+
+    .assignment-item:hover {
+        background: #f0f7ff;
+        border-color: #8eb1d1;
+        transform: translateX(4px);
+    }
+
+    .assignment-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+    }
+
+    .assignment-title {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #374151;
+    }
+</style>
