@@ -1,4 +1,4 @@
-import { pgTable, pgEnum, serial, integer, text, timestamp, jsonb, unique, uuid } 
+import { pgTable, pgEnum, serial, integer, text, timestamp, jsonb, unique, uuid, boolean } 
 from 'drizzle-orm/pg-core';
 import { defineRelations } from 'drizzle-orm';
 
@@ -30,5 +30,33 @@ export const slides = pgTable('slides', {
     updated_at: timestamp().notNull().defaultNow(),
 }, (table) => [
     unique().on(table.assignment_id, table.position),
+]);
+
+export const assignmentResults = pgTable('assignment_results', {
+    id: serial().primaryKey(),
+    studentId: integer().notNull().references(() => users.id),
+    assignmentId: uuid().notNull().references(() => assignments.id),
+    currentSlideId: integer().references(() => slides.id),
+    status: text().notNull().$type<'in_progress' | 'completed'>(),
+    startedAt: timestamp().notNull().defaultNow(),
+    completedAt: timestamp(),
+    updatedAt: timestamp().notNull().defaultNow(),
+}, (table) => [
+    unique().on(table.studentId, table.assignmentId)
+]);
+
+export const slideResults = pgTable('slide_results', {
+    id: serial().primaryKey(),
+    result_id: integer()
+        .notNull()
+        .references(() => assignmentResults.id),
+    slide_id: integer()
+        .notNull()
+        .references(() => slides.id),
+    answer: jsonb(),
+    is_correct: boolean(),
+    answered_at: timestamp().notNull().defaultNow(),
+}, (table) => [
+    unique().on(table.result_id, table.slide_id),
 ]);
 
