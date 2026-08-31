@@ -13,8 +13,8 @@
     }
 
     function validateInput(): boolean {
-        validationError.name = username ? '' : 'Username is required';
-        validationError.pass = password ? '' : 'Password is required';
+        validationError.name = username ? '' : 'Имя пользователя обязательно';
+        validationError.pass = password ? '' : 'Пароль обязателен';
 
         return !validationError.name && !validationError.pass;
     }
@@ -29,8 +29,8 @@
                     <circle cx="12" cy="7" r="4"/>
                 </svg>
             </div>
-            <h1>Welcome Back</h1>
-            <p class="subtitle">Sign in to your account</p>
+            <h1>Добро пожаловать</h1>
+            <p class="subtitle">Войдите в свой аккаунт</p>
         </div>
 
         {#if form?.error}
@@ -52,13 +52,13 @@
             formData.set('password', password.trim());
         }}>
             <div class="form-group">
-                <label for="username">Username</label>
+                <label for="username">Имя пользователя</label>
                 <input 
                     type="text" 
                     id="username"
                     name="username" 
                     bind:value={username}
-                    placeholder="Enter your username"
+                    placeholder="Введите имя пользователя"
                     onkeydown={discardEnter}
                     class:error={validationError.name}/>
                 {#if validationError.name}
@@ -67,13 +67,13 @@
             </div>
 
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password">Пароль</label>
                 <input 
                     type="password" 
                     id="password"
                     name="password" 
                     bind:value={password}
-                    placeholder="Enter your password"
+                    placeholder="Введите пароль"
                     autocomplete="off"/>
                 {#if validationError.pass}
                     <span class="field-error">{validationError.pass}</span>
@@ -86,7 +86,7 @@
                     <polyline points="10 17 15 12 10 7"/>
                     <line x1="15" y1="12" x2="3" y2="12"/>
                 </svg>
-                Sign In
+                Войти
             </button>
         </form>
     </div>
@@ -98,7 +98,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+        background: linear-gradient(135deg, #f5f8fc 0%, #eef2f7 100%);
         padding: 1rem;
     }
 
@@ -107,7 +107,7 @@
         border-radius: 16px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
                     0 2px 4px -1px rgba(0, 0, 0, 0.06),
-                    0 0 0 1px rgba(100, 149, 237, 0.1);
+                    0 0 0 1px rgba(142, 177, 209, 0.1);
         padding: 2.5rem;
         width: 100%;
         max-width: 420px;
@@ -133,7 +133,7 @@
     .logo-icon {
         width: 64px;
         height: 64px;
-        background: linear-gradient(135deg, #6495ed 0%, #4a7bd4 100%);
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
         border-radius: 16px;
         display: flex;
         align-items: center;
@@ -192,8 +192,8 @@
     }
 
     .form-group input:focus {
-        border-color: #6495ed;
-        box-shadow: 0 0 0 3px rgba(100, 149, 237, 0.1);
+        border-color: #8eb1d1;
+        box-shadow: 0 0 0 3px rgba(142, 177, 209, 0.1);
     }
 
     .form-group input.error {
@@ -214,7 +214,7 @@
     .btn-primary {
         width: 100%;
         padding: 0.875rem 1.5rem;
-        background: linear-gradient(135deg, #6495ed 0%, #4a7bd4 100%);
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
         color: white;
         border: none;
         border-radius: 8px;
@@ -231,7 +231,7 @@
 
     .btn-primary:hover {
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(100, 149, 237, 0.4);
+        box-shadow: 0 4px 12px rgba(142, 177, 209, 0.4);
     }
 
     .btn-primary:active {
