@@ -44,12 +44,12 @@
             {:else}
                 <ul>
                     {#each data.students as student, index}
-                        <li class="student-item" style="animation-delay: {index * 0.05}s">
+                        <a href={`/teacher/students/${student.id}`} class="student-item" style="animation-delay: {index * 0.05}s; text-decoration: none;">
                             <div class="student-avatar">
                                 {student.name.charAt(0).toUpperCase()}
                             </div>
                             <span class="student-name">{student.name}</span>
-                        </li>
+                        </a>
                     {/each}
                 </ul>
             {/if}
