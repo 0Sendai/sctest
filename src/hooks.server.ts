@@ -52,6 +52,7 @@ export const handle: Handle = async ({ event, resolve }) => {
             break;
         }
         case 'login':
+        case 'api':
         case '': break;
 
         default: {
