@@ -1,6 +1,7 @@
 import { fail } from '@sveltejs/kit';
 import { eq, asc, inArray } from 'drizzle-orm';
 import { assignments, assignmentResults } from '$lib/server/db/schema';
+import { logout } from '$lib/server/logout';
 
 export async function load({ locals }) {
     if (!locals.user?.id) {
@@ -40,4 +41,10 @@ export async function load({ locals }) {
     }));
 
     return { results: resultsWithAssignments };
+}
+
+export const actions = {
+    logout: async ({ locals, cookies }) => {
+        await logout(locals, cookies);
+    }
 }
