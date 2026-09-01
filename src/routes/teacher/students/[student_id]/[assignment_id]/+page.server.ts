@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, asc } from 'drizzle-orm';
+import { eq, asc, and } from 'drizzle-orm';
 import { assignments, slides, assignmentResults, slideResults, users } from '$lib/server/db/schema';
 
 export async function load({ params, locals }) {
@@ -54,7 +54,10 @@ export async function load({ params, locals }) {
         .select()
         .from(assignmentResults)
         .where(
-            eq(assignmentResults.studentId, parseInt(studentId))
+            and(
+                eq(assignmentResults.studentId, parseInt(studentId)),
+                eq(assignmentResults.assignmentId, assignmentId)
+            )
         )
         .limit(1);
 

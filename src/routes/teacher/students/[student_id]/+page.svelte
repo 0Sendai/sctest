@@ -61,7 +61,7 @@
             {:else}
                 <div class="assignments-grid">
                     {#each assignments as assignment, index}
-                        <a href={`/teacher/students/${student?.id}/${assignment.id}`} class="assignment-card" style="animation-delay: {index * 0.05}s">
+                        <a href={`/teacher/students/${student?.id}/${assignment.assignmentId}`} class="assignment-card" style="animation-delay: {index * 0.05}s">
                             <div class="assignment-header">
                                 <div class="assignment-title">{assignment.assignmentTitle || 'Без названия'}</div>
                                 <div class="status-badge {getStatusBadge(assignment.status).class}">
