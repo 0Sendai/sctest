@@ -63,6 +63,24 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             return error(400, 'Slide does not belong to this assignment');
         }
 
+        // Определяем правильность ответа
+        const slideContent = slide[0].content as Record<string, unknown>;
+        let isCorrect: boolean | null = null;
+
+        if (slide[0].type === 'quiz' && 'correctVariantIndex' in slideContent && 'variants' in slideContent) {
+            const correctIndex = slideContent.correctVariantIndex as number;
+            const variants = slideContent.variants as string[];
+            const studentAnswer = answer as string;
+            // Находим индекс ответа студента в вариантах
+            const studentIndex = variants.indexOf(studentAnswer);
+            isCorrect = studentIndex === correctIndex;
+        } else if (slide[0].type === 'text' && 'correctAnswer' in slideContent) {
+            const correctAnswer = slideContent.correctAnswer as string;
+            const studentAnswer = (answer as string)?.trim().toLowerCase();
+            const correctTrimmed = correctAnswer.trim().toLowerCase();
+            isCorrect = studentAnswer === correctTrimmed;
+        }
+
         // Сохраняем или обновляем результат слайда
         await db
             .insert(slideResults)
@@ -70,11 +88,13 @@ export const POST: RequestHandler = async ({ request, locals }) => {
                 result_id: resultId,
                 slide_id: slideId,
                 answer: answer,
+                is_correct: isCorrect,
             })
             .onConflictDoUpdate({
                 target: [slideResults.result_id, slideResults.slide_id],
                 set: {
                     answer: answer,
+                    is_correct: isCorrect,
                     answered_at: new Date(),
                 },
             });
