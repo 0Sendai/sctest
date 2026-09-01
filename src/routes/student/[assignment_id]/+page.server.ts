@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { eq, asc } from 'drizzle-orm';
-import { assignments, slides, assignmentResults, users } from '$lib/server/db/schema';
+import { eq, asc, and, inArray } from 'drizzle-orm';
+import { assignments, slides, assignmentResults, users, slideResults } from '$lib/server/db/schema';
 
 export async function load({ params, locals }) {
     if (!locals.user?.id) {
@@ -79,7 +79,10 @@ export async function load({ params, locals }) {
             .select()
             .from(assignmentResults)
             .where(
-                eq(assignmentResults.studentId, studentId)
+                and(
+                    eq(assignmentResults.studentId, studentId),
+                    eq(assignmentResults.assignmentId, assignmentId)
+                )
             )
             .limit(1);
     } catch (dbError) {
@@ -118,6 +121,32 @@ export async function load({ params, locals }) {
 
     const assignmentResult = result[0];
 
+    // Получаем ответы студента на слайды, если задание уже начато
+    let slideAnswers: Record<number, any> = {};
+    if (assignmentResult.status === 'in_progress' || assignmentResult.currentSlideId) {
+        try {
+            const savedAnswers = await locals.db
+                .select()
+                .from(slideResults)
+                .where(
+                    and(
+                        eq(slideResults.result_id, assignmentResult.id),
+                        inArray(
+                            slideResults.slide_id,
+                            cleanSlides.map(s => s.id)
+                        )
+                    )
+                );
+            // Преобразуем в словарь: slideId -> answer
+            savedAnswers.forEach(sa => {
+                slideAnswers[sa.slide_id] = sa.answer;
+            });
+        } catch (dbError) {
+            console.error('Database error (slideResults select):', dbError);
+            // Не блокируем загрузку, если не удалось получить ответы
+        }
+    }
+
     return {
         assignment: {
             ...assignment,
@@ -129,6 +158,7 @@ export async function load({ params, locals }) {
             currentSlideId: assignmentResult.currentSlideId,
             status: assignmentResult.status,
         },
+        slideAnswers,
     };
     
 }

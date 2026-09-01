@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-
     let { data } = $props();
 
     // Извлекаем данные с проверкой
     const assignment = $derived(data.assignment);
     const slides = $derived(data.slides);
     const assignmentResult = $derived(data.assignmentResult);
+    const slideAnswers = $derived(data.slideAnswers);
 
     // Состояние приложения
     let started = $state(false);
@@ -22,12 +21,23 @@
     const isLastSlide = $derived(slides && currentSlideIndex === slides.length - 1);
     const allSlidesCompleted = $derived(slides ? slides.every(s => answers[s.id] !== undefined) : false);
 
-    // Инициализация текущего слайда из сохраненного результата
-    onMount(() => {
-        if (assignmentResult?.currentSlideId) {
-            const slideIndex = slides?.findIndex(s => s.id === assignmentResult.currentSlideId);
-            if (slideIndex !== undefined && slideIndex !== -1) {
-                currentSlideIndex = slideIndex;
+    // Восстановление прогресса и автоматический старт при загрузке
+    $effect(() => {
+        if (slides && assignmentResult) {
+            // Если задание уже начато, сразу показываем слайды
+            if (assignmentResult.status === 'in_progress' && !started) {
+                started = true;
+            }
+            // Восстанавливаем индекс слайда из сохраненного результата
+            if (assignmentResult.currentSlideId) {
+                const slideIndex = slides.findIndex(s => s.id === assignmentResult.currentSlideId);
+                if (slideIndex !== -1) {
+                    currentSlideIndex = slideIndex;
+                }
+            }
+            // Восстанавливаем ответы с сервера
+            if (slideAnswers && Object.keys(slideAnswers).length > 0) {
+                answers = { ...slideAnswers };
             }
         }
     });
