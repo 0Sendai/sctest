@@ -1,6 +1,6 @@
 import { fail } from '@sveltejs/kit';
-import { eq, asc, inArray } from 'drizzle-orm';
-import { assignments, assignmentResults } from '$lib/server/db/schema';
+import { eq, asc, inArray, count, ne, and } from 'drizzle-orm';
+import { assignments, assignmentResults, slideComments } from '$lib/server/db/schema';
 import { logout } from '$lib/server/logout';
 
 export async function load({ locals }) {
@@ -35,10 +35,39 @@ export async function load({ locals }) {
         assignmentsData.map(a => [a.id, a])
     );
 
-    const resultsWithAssignments = results.map(result => ({
-        ...result,
-        assignment: assignmentsMap.get(result.assignmentId) || { id: result.assignmentId, title: 'Unknown' },
-    }));
+    // Получаем комментарии для завершенных заданий
+    const completedResults = results.filter(r => r.status === 'completed');
+    const commentsPromises = completedResults.map(r =>
+        locals.db
+            .select()
+            .from(slideComments)
+            .where(
+                and(
+                    eq(slideComments.assignment_id, r.assignmentId),
+                    eq(slideComments.student_id, studentId)
+                )
+            )
+            .then(comments => comments.some(c => c.comment && c.comment.trim() !== ''))
+    );
+
+    const hasCommentsArray = commentsPromises.length > 0
+        ? await Promise.all(commentsPromises)
+        : [];
+
+    let commentIndex = 0;
+    const resultsWithAssignments = results.map(result => {
+        const assignment = assignmentsMap.get(result.assignmentId) || { id: result.assignmentId, title: 'Unknown' };
+        let isGraded = false;
+        if (result.status === 'completed' && hasCommentsArray[commentIndex]) {
+            isGraded = true;
+        }
+        commentIndex++;
+        return {
+            ...result,
+            assignment,
+            isGraded,
+        };
+    });
 
     return { results: resultsWithAssignments };
 }

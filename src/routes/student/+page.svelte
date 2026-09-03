@@ -14,6 +14,16 @@
         completed: 'status-completed',
     };
 
+    const gradedLabels: Record<string, string> = {
+        'true': 'Оценено',
+        'false': 'Не оценено',
+    };
+
+    const gradedClasses: Record<string, string> = {
+        'true': 'graded-yes',
+        'false': 'graded-no',
+    };
+
     function formatDate(date: Date): string {
         return date.toLocaleDateString('ru-RU', {
             day: '2-digit',
@@ -74,6 +84,11 @@
                                     <span class="assignment-date">
                                         {formatDate(result.startedAt)}
                                     </span>
+                                    {#if result.status === 'completed'}
+                                        <span class="graded-badge {gradedClasses[String(result.isGraded)]}">
+                                            {gradedLabels[String(result.isGraded)]}
+                                        </span>
+                                    {/if}
                                 </div>
                                 <span class="status-badge {statusClasses[result.status]}">
                                     {statusLabels[result.status]}
@@ -270,6 +285,24 @@
     .assignment-date {
         font-size: 0.85rem;
         color: #6b7280;
+    }
+
+    .graded-badge {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 9999px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .graded-badge.graded-yes {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .graded-badge.graded-no {
+        background: #fef3c7;
+        color: #d97706;
     }
 
     .status-badge {

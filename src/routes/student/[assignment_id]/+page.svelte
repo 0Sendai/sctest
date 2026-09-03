@@ -6,6 +6,7 @@
     const slides = $derived(data.slides);
     const assignmentResult = $derived(data.assignmentResult);
     const slideAnswers = $derived(data.slideAnswers);
+    const slideComments = $derived(data.slideComments);
 
     // Состояние приложения
     let started = $state(false);
@@ -20,6 +21,8 @@
     const isFirstSlide = $derived(currentSlideIndex === 0);
     const isLastSlide = $derived(slides && currentSlideIndex === slides.length - 1);
     const allSlidesCompleted = $derived(slides ? slides.every(s => answers[s.id] !== undefined) : false);
+    const isGraded = $derived(assignmentResult?.status === 'completed' && slides?.some(s => slideComments?.has(s.id) ?? false));
+    const hasComments = $derived(assignmentResult?.status === 'completed' && (slideComments?.size ?? 0) > 0);
 
     // Восстановление прогресса и автоматический старт при загрузке
     $effect(() => {
@@ -181,7 +184,7 @@
                         <div class="quiz-slide">
                             <h3 class="quiz-question">{(currentSlide.content as any).question}</h3>
                             <div class="quiz-options">
-                                {#each (currentSlide.content as any).variants as option, index}
+                                {#each (currentSlide.content as any).variants as option, index (option)}
                                     <label class="quiz-option {answers[currentSlide.id] === option ? 'selected' : ''}">
                                         <input
                                             type="radio"
@@ -209,6 +212,39 @@
                 </div>
             {/if}
         </div>
+
+        <!-- Секция комментариев преподавателя (показывается после завершения) -->
+        {#if hasComments && started}
+            <div class="teacher-comments-section">
+                <div class="comments-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <h3>Комментарии преподавателя</h3>
+                </div>
+                <div class="comments-list">
+                    {#each slides as slide, index}
+                        {#if slideComments?.has(slide.id)}
+                            <div class="comment-card">
+                                <div class="comment-slide-number">
+                                    Слайд {index + 1}
+                                    <span class="comment-slide-type">{slide.type === 'quiz' ? '(Опрос)' : '(Вопрос)'}</span>
+                                </div>
+                                <div class="comment-question">
+                                    <strong>Вопрос:</strong> {#if slide.type === 'quiz'}{(slide.content as any).question}{:else}{(slide.content as any).question}{/if}
+                                </div>
+                                <div class="comment-text">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="9 18 15 12 9 6"/>
+                                    </svg>
+                                    {slideComments?.get(slide.id)}
+                                </div>
+                            </div>
+                        {/if}
+                    {/each}
+                </div>
+            </div>
+        {/if}
 
         <div class="slide-footer">
             {#if errorMessage}
@@ -549,6 +585,103 @@
     .btn-next:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: 0 6px 16px rgba(122, 163, 196, 0.4);
+    }
+
+    /* Teacher Comments Section */
+    .teacher-comments-section {
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+        border: 2px solid #8eb1d1;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin: 1.5rem 2rem;
+        animation: slideUp 0.4s ease-out;
+    }
+
+    .comments-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #8eb1d1;
+    }
+
+    .comments-header svg {
+        color: #7aa3c4;
+    }
+
+    .comments-header h3 {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0;
+    }
+
+    .comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .comment-card {
+        background: white;
+        border: 2px solid #d1e7f5;
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: all 0.2s ease;
+    }
+
+    .comment-card:hover {
+        border-color: #8eb1d1;
+        box-shadow: 0 4px 12px rgba(122, 163, 196, 0.15);
+    }
+
+    .comment-slide-number {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-slide-type {
+        font-size: 0.75rem;
+        color: #6b7280;
+        background: #f0f7ff;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+
+    .comment-question {
+        font-size: 0.9rem;
+        color: #374151;
+        margin-bottom: 0.75rem;
+        line-height: 1.5;
+        padding: 0.75rem;
+        background: #f8fafc;
+        border-radius: 8px;
+    }
+
+    .comment-question strong {
+        color: #7aa3c4;
+    }
+
+    .comment-text {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        color: #1a1a2e;
+        line-height: 1.6;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%);
+        border-left: 3px solid #7aa3c4;
+        border-radius: 0 8px 8px 0;
+    }
+
+    .comment-text svg {
+        color: #7aa3c4;
+        flex-shrink: 0;
+        margin-top: 2px;
     }
 
     @media (max-width: 640px) {

@@ -1,6 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { eq, asc, and, inArray } from 'drizzle-orm';
-import { assignments, slides, assignmentResults, users, slideResults } from '$lib/server/db/schema';
+import { assignments, slides, assignmentResults, users, slideResults, slideComments } from '$lib/server/db/schema';
 
 export async function load({ params, locals }) {
     if (!locals.user?.id) {
@@ -147,6 +147,24 @@ export async function load({ params, locals }) {
         }
     }
 
+    // Получаем комментарии преподавателя, если задание завершено
+    let slideCommentsMap = new Map<number, string>();
+    if (assignmentResult.status === 'completed') {
+        const commentsData = await locals.db
+            .select()
+            .from(slideComments)
+            .where(
+                and(
+                    eq(slideComments.assignment_id, assignmentId),
+                    eq(slideComments.student_id, studentId)
+                )
+            );
+
+        for (const c of commentsData) {
+            slideCommentsMap.set(c.slide_id, c.comment || '');
+        }
+    }
+
     return {
         assignment: {
             ...assignment,
@@ -159,6 +177,7 @@ export async function load({ params, locals }) {
             status: assignmentResult.status,
         },
         slideAnswers,
+        slideComments: slideCommentsMap,
     };
     
 }
