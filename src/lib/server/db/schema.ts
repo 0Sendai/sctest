@@ -60,3 +60,13 @@ export const slideResults = pgTable('slide_results', {
     unique().on(table.result_id, table.slide_id),
 ]);
 
+export const slideComments = pgTable('slide_comments', {
+    id: serial().primaryKey(),
+    assignment_id: uuid().notNull().references(() => assignments.id),
+    slide_id: integer().notNull().references(() => slides.id),
+    student_id: integer().notNull().references(() => users.id),
+    comment: text(),
+}, (table) => [
+    unique().on(table.assignment_id, table.student_id, table.slide_id),
+]);
+
