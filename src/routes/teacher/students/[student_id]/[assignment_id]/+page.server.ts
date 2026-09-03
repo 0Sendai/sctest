@@ -1,6 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import { eq, asc, and } from 'drizzle-orm';
-import { assignments, slides, assignmentResults, slideResults, users } from '$lib/server/db/schema';
+import { db } from '$lib/server/db/index';
+import { assignments, slides, assignmentResults, slideResults, users, slideComments } from '$lib/server/db/schema';
+import { type Actions } from './$types';
 
 export async function load({ params, locals }) {
     if (!locals.user?.id) {
@@ -116,6 +118,23 @@ export async function load({ params, locals }) {
     const correctAnswers = slideResultsData.filter((sr: typeof slideResultsData[0]) => sr.is_correct === true).length;
     const incorrectAnswers = slideResultsData.filter((sr: typeof slideResultsData[0]) => sr.is_correct === false).length;
 
+    // Получаем комментарии преподавателя к слайдам
+    const commentsData = await locals.db
+        .select()
+        .from(slideComments)
+        .where(
+            and(
+                eq(slideComments.assignment_id, assignmentId),
+                eq(slideComments.student_id, parseInt(studentId))
+            )
+        );
+
+    // Создаем маппинг slideId -> comment
+    const commentsMap = new Map<number, string>();
+    for (const c of commentsData) {
+        commentsMap.set(c.slide_id, c.comment || '');
+    }
+
     return {
         student: student[0],
         assignment: {
@@ -131,6 +150,7 @@ export async function load({ params, locals }) {
         },
         slides: slidesWithResults,
         slideResults: slideResultsData,
+        slideComments: commentsMap,
         stats: {
             total: totalSlides,
             answered: answeredSlides,
@@ -140,3 +160,54 @@ export async function load({ params, locals }) {
         },
     };
 }
+
+export const actions: Actions = {
+    default: async ({ request, locals }) => {
+        if (!locals.user?.id) {
+            return fail(401, { error: 'Unauthorized' });
+        }
+
+        if (locals.user.role !== 'teacher' && locals.user.role !== 'admin') {
+            return fail(403, { error: 'Forbidden' });
+        }
+
+        const formData = await request.formData();
+        const assignmentId = formData.get('assignmentId') as string;
+        const studentId = parseInt(formData.get('studentId') as string);
+        const commentsJson = formData.get('comments') as string;
+
+        if (!assignmentId || !studentId) {
+            return fail(400, { error: 'Missing required fields' });
+        }
+
+        try {
+            // Проверяем, пришли ли комментарии как JSON (массовое сохранение)
+            if (commentsJson) {
+                const comments: Array<{ slide_id: number; comment: string }> = JSON.parse(commentsJson);
+
+                // Сохраняем все комментарии
+                for (const c of comments) {
+                    await db
+                        .insert(slideComments)
+                        .values({
+                            assignment_id: assignmentId,
+                            slide_id: c.slide_id,
+                            student_id: studentId,
+                            comment: c.comment || null,
+                        })
+                        .onConflictDoUpdate({
+                            target: [slideComments.assignment_id, slideComments.student_id, slideComments.slide_id],
+                            set: {
+                                comment: c.comment || null,
+                            },
+                        });
+                }
+            }
+
+            return { success: true };
+        } catch (dbError) {
+            console.error('Database error (slideComments):', dbError);
+            return fail(500, { error: 'Database error' });
+        }
+    },
+};

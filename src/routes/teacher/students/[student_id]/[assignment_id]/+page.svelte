@@ -1,11 +1,12 @@
 <script lang="ts">
-    let { data } = $props();
-    const path = $state(typeof window !== 'undefined' ? window.location.pathname : '');
+    import { type ActionData } from './$types';
+    let { data, formActionData } = $props<{ data: typeof data, formActionData: ActionData }>();
 
     const student = $derived(data.student);
     const assignment = $derived(data.assignment);
     const result = $derived(data.result);
     const slides = $derived(data.slides);
+    const slideComments = $derived(data.slideComments);
     const stats = $derived(data.stats);
 
     function getStatusBadge(status: string) {
@@ -34,6 +35,62 @@
     function getCorrectnessClass(isCorrect: boolean | null) {
         if (isCorrect === null) return '';
         return isCorrect ? 'correct' : 'incorrect';
+    }
+
+    // Состояние комментариев
+    let saveMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+    let isSaving = $state(false);
+
+    function getComment(slideId: number): string {
+        return slideComments.get(slideId) || '';
+    }
+
+    // Собираем все комментарии из textarea
+    function getAllComments(): Array<{ slide_id: number; comment: string }> {
+        const textareas = document.querySelectorAll('.comment-input');
+        const comments: Array<{ slide_id: number; comment: string }> = [];
+        textareas.forEach((textarea: Element) => {
+            const ta = textarea as HTMLTextAreaElement;
+            const slideId = parseInt(ta.dataset.slideId || '0');
+            const comment = ta.value;
+            if (slideId) {
+                comments.push({ slide_id: slideId, comment });
+            }
+        });
+        return comments;
+    }
+
+    // Сохраняем все комментарии через fetch
+    async function saveAllComments() {
+        const comments = getAllComments();
+        if (comments.length === 0) return;
+
+        isSaving = true;
+        saveMessage = null;
+
+        try {
+            const formData = new FormData();
+            formData.append('assignmentId', assignment.id);
+            formData.append('studentId', student.id.toString());
+            formData.append('comments', JSON.stringify(comments));
+
+            const response = await fetch(`/teacher/students/${student.id}/${assignment.id}`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                saveMessage = { type: 'success', text: 'Все комментарии сохранены' };
+                setTimeout(() => { saveMessage = null; }, 3000);
+            } else {
+                saveMessage = { type: 'error', text: 'Ошибка при сохранении' };
+            }
+        } catch (error) {
+            console.error('Error saving comments:', error);
+            saveMessage = { type: 'error', text: 'Ошибка сети' };
+        } finally {
+            isSaving = false;
+        }
     }
 </script>
 
@@ -119,7 +176,7 @@
                     <p>Студент ещё не начинал это задание</p>
                 </div>
             {:else}
-                {#each slides as slide, index}
+                {#each slides as slide, index (slide.id)}
                     <div class="slide-result-card">
                         <div class="slide-result-header">
                             <div class="slide-number">
@@ -137,7 +194,7 @@
                             {#if slide.type === 'quiz'}
                                 {(slide.content as any).question}
                                 <div class="slide-variants">
-                                    {#each (slide.content as any).variants as variant, vIndex}
+                                    {#each (slide.content as any).variants as variant, vIndex (variant)}
                                         <div class="variant-item {slide.studentAnswer === variant ? (slide.isCorrect ? 'variant-correct' : 'variant-incorrect') : ''}">
                                             {variant}
                                             {#if slide.studentAnswer === variant}
@@ -167,9 +224,50 @@
                                 Ответ дан: {new Date(slide.answeredAt).toLocaleString('ru-RU')}
                             </div>
                         {/if}
+
+                        <!-- Поле для комментария преподавателя -->
+                        <div class="comment-section">
+                            <div class="comment-header">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                <span>Комментарий преподавателя:</span>
+                            </div>
+                            <textarea
+                                class="comment-input"
+                                data-slide-id={slide.id}
+                                placeholder="Оставьте комментарий..."
+                                rows={3}
+                            >{getComment(slide.id)}</textarea>
+                        </div>
                     </div>
                 {/each}
             {/if}
+
+            <!-- Кнопка сохранения всех комментариев -->
+            <div class="save-all-section">
+                {#if saveMessage}
+                    <div class="save-message {saveMessage.type}">
+                        {saveMessage.text}
+                    </div>
+                {/if}
+                <button
+                    class="btn-save-all"
+                    onclick={saveAllComments}
+                    disabled={isSaving}
+                >
+                    {#if isSaving}
+                        <span class="spinner"></span>
+                        Сохранение...
+                    {:else}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                            <polyline points="17 21 17 13 12 18 7 13 12 21"/>
+                        </svg>
+                        Сохранить все комментарии
+                    {/if}
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -488,6 +586,130 @@
         font-size: 0.8rem;
         color: #9ca3af;
         text-align: right;
+    }
+
+    /* Comment Section */
+    .comment-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 2px dashed #e5e7eb;
+    }
+
+    .comment-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #7aa3c4;
+        margin-bottom: 0.75rem;
+    }
+
+    .comment-header svg {
+        color: #7aa3c4;
+    }
+
+    .comment-input {
+        width: 100%;
+        min-height: 80px;
+        padding: 0.875rem 1rem;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: #374151;
+        background: #f8fafc;
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        resize: vertical;
+        transition: all 0.2s ease;
+        line-height: 1.5;
+    }
+
+    .comment-input:focus {
+        outline: none;
+        border-color: #7aa3c4;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(122, 163, 196, 0.2);
+    }
+
+    .comment-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .save-all-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e5e7eb;
+    }
+
+    .btn-save-all {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #8eb1d1 0%, #7aa3c4 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(122, 163, 196, 0.3);
+        min-width: 280px;
+        justify-content: center;
+    }
+
+    .btn-save-all:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(122, 163, 196, 0.4);
+    }
+
+    .btn-save-all:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-save-all:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .save-message {
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .save-message.success {
+        color: #16a34a;
+        background: #dcfce7;
+        border: 2px solid #86efac;
+    }
+
+    .save-message.error {
+        color: #dc2626;
+        background: #fee2e2;
+        border: 2px solid #fecaca;
     }
 
     .no-result {
