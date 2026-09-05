@@ -8,7 +8,6 @@ type Slide = {
     question: string;
     variants: string[];
     correctVariantIndex: number;
-    correctAnswer: string;
 };
 
 type SlidesJson = Slide[];
@@ -65,17 +64,13 @@ async function parseForm(form: FormData): Promise<[string, SlideDb[]] | null> {
         }
         
         if (slide.type === 'text') {
-            if (!checkForString(slide.correctAnswer)) {
-                console.log("Bad correct answer");
-                return null;
-            }
+            
             slideDb.push({
                 assignment_id: '',
                 type: slide.type,
                 position: index,
                 content: {
                     question: slide.question,
-                    correctAnswer: slide.correctAnswer,
                 },
             });
         } else if (slide.type === 'quiz') {

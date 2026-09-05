@@ -8,7 +8,6 @@
         question: string;
         variants: string[];
         correctVariantIndex?: number;  // индекс правильного варианта для quiz
-        correctAnswer?: string;        // правильный ответ для text
     }
 
     let slides = $state<Slide[]>([{
@@ -16,7 +15,6 @@
         question: '',
         variants: [''],
         correctVariantIndex: 0,
-        correctAnswer: '',
     }]);
 
     let hiddenValue = $derived(JSON.stringify(slides));
@@ -29,7 +27,6 @@
             question: '',
             variants: [''],
             correctVariantIndex: 0,
-            correctAnswer: '',
         });
     }
 
@@ -72,9 +69,7 @@
                 ? 'Заполните все варианты'
                 : errorMsg.slides[index];
         }
-        if (slide.type === 'text' && !slide.correctAnswer) {
-            errorMsg.slides[index] = 'Укажите правильный ответ';
-        }
+        
         return !errorMsg.slides[index];
     }
 
@@ -226,22 +221,6 @@
                             </div>
                         {/if}
 
-                        {#if slide.type === 'text'}
-                            <div class="form-group">
-                                <label for={`correct-answer-${index}`}>Правильный ответ</label>
-                                <input
-                                    type="text"
-                                    id={`correct-answer-${index}`}
-                                    bind:value={slide.correctAnswer}
-                                    placeholder="Введите правильный ответ"
-                                    class:error={errorMsg.slides[index]}
-                                    onkeydown={disableEnter}
-                                    autocomplete="off"/>
-                                {#if errorMsg.slides[index]}
-                                    <span class="field-error">{errorMsg.slides[index]}</span>
-                                {/if}
-                            </div>
-                        {/if}
                     </div>
                 {/each}
             </div>
