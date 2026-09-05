@@ -41,6 +41,42 @@
     let saveMessage = $state<{ type: 'success' | 'error'; text: string } | null>(null);
     let isSaving = $state(false);
 
+    // Состояние отметок правильности для каждого слайда
+    // slideId -> true (правильно) | false (неправильно) | null (не отмечено)
+    let correctnessStates = $state<Record<number, boolean | null>>({});
+    let _initialized = false;
+
+    // Инициализируем из данных при загрузке
+    $effect(() => {
+        if (!_initialized && data.slides) {
+            for (const slide of data.slides) {
+                correctnessStates[slide.id] = slide.isCorrect !== null ? slide.isCorrect : null;
+            }
+            _initialized = true;
+        }
+    });
+
+    function toggleCorrectness(slideId: number, value: boolean) {
+        const current = correctnessStates[slideId];
+        // Если уже стоит такая отметка — снимаем её
+        if (current === value) {
+            correctnessStates[slideId] = null;
+        } else {
+            correctnessStates[slideId] = value;
+        }
+    }
+
+    // Собираем все отметки правильности
+    function getAllCorrectnesses(): Array<{ slide_id: number; is_correct: boolean }> {
+        const correctnesses: Array<{ slide_id: number; is_correct: boolean }> = [];
+        for (const [slideId, isCorrect] of Object.entries(correctnessStates)) {
+            if (isCorrect !== null) {
+                correctnesses.push({ slide_id: Number(slideId), is_correct: isCorrect });
+            }
+        }
+        return correctnesses;
+    }
+
     function getComment(slideId: number): string {
         return slideComments.get(slideId) || '';
     }
@@ -60,10 +96,17 @@
         return comments;
     }
 
-    // Сохраняем все комментарии через fetch
+    // Сохраняем все комментарии и отметки через fetch
     async function saveAllComments() {
         const comments = getAllComments();
-        if (comments.length === 0) return;
+        const correctnesses = getAllCorrectnesses();
+
+        // Проверяем, есть ли что сохранять
+        if (comments.length === 0 && correctnesses.length === 0) {
+            saveMessage = { type: 'error', text: 'Нет данных для сохранения' };
+            setTimeout(() => { saveMessage = null; }, 3000);
+            return;
+        }
 
         isSaving = true;
         saveMessage = null;
@@ -72,7 +115,12 @@
             const formData = new FormData();
             formData.append('assignmentId', assignment.id);
             formData.append('studentId', student.id.toString());
-            formData.append('comments', JSON.stringify(comments));
+            if (comments.length > 0) {
+                formData.append('comments', JSON.stringify(comments));
+            }
+            if (correctnesses.length > 0) {
+                formData.append('correctnesses', JSON.stringify(correctnesses));
+            }
 
             const response = await fetch(`/teacher/students/${student.id}/${assignment.id}`, {
                 method: 'POST',
@@ -80,13 +128,20 @@
             });
 
             if (response.ok) {
-                saveMessage = { type: 'success', text: 'Все комментарии сохранены' };
+                const result = await response.json();
+                // Обновляем состояния правильности из ответа сервера
+                if (result.updatedSlides) {
+                    for (const update of result.updatedSlides) {
+                        correctnessStates[update.slide_id] = update.is_correct;
+                    }
+                }
+                saveMessage = { type: 'success', text: 'Все изменения сохранены' };
                 setTimeout(() => { saveMessage = null; }, 3000);
             } else {
                 saveMessage = { type: 'error', text: 'Ошибка при сохранении' };
             }
         } catch (error) {
-            console.error('Error saving comments:', error);
+            console.error('Error saving:', error);
             saveMessage = { type: 'error', text: 'Ошибка сети' };
         } finally {
             isSaving = false;
@@ -183,11 +238,32 @@
                                 Слайд {index + 1}
                                 <span class="slide-type-badge">{slide.type === 'quiz' ? 'Опрос' : 'Текстовый'}</span>
                             </div>
-                            {#if slide.isCorrect !== null}
-                                <div class="correctness-badge {getCorrectnessClass(slide.isCorrect)}">
-                                    {slide.isCorrect ? 'Правильно' : 'Неправильно'}
-                                </div>
-                            {/if}
+                            <div class="correctness-controls">
+                                {#if slide.type === 'text'}
+                                    <!-- Кнопки для текстовых слайдов -->
+                                    <button
+                                        class="correctness-btn correctness-btn-correct {correctnessStates[slide.id] === true ? 'active' : ''}"
+                                        onclick={() => toggleCorrectness(slide.id, true)}
+                                        title="Отметить как правильный"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="20 6 9 17 4 12"/>
+                                        </svg>
+                                        Правильно
+                                    </button>
+                                    <button
+                                        class="correctness-btn correctness-btn-incorrect {correctnessStates[slide.id] === false ? 'active' : ''}"
+                                        onclick={() => toggleCorrectness(slide.id, false)}
+                                        title="Отметить как неправильный"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"/>
+                                            <line x1="6" y1="6" x2="18" y2="18"/>
+                                        </svg>
+                                        Неправильно
+                                    </button>
+                                {/if}
+                            </div>
                         </div>
 
                         <div class="slide-question">
@@ -459,6 +535,48 @@
         margin-bottom: 1rem;
         padding-bottom: 0.75rem;
         border-bottom: 1px solid #e5e7eb;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .correctness-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .correctness-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        background: white;
+        color: #6b7280;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .correctness-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .correctness-btn-correct:hover,
+    .correctness-btn-correct.active {
+        background: #dcfce7;
+        border-color: #86efac;
+        color: #16a34a;
+    }
+
+    .correctness-btn-incorrect:hover,
+    .correctness-btn-incorrect.active {
+        background: #fee2e2;
+        border-color: #fecaca;
+        color: #dc2626;
     }
 
     .slide-number {
@@ -612,6 +730,7 @@
     .comment-input {
         width: 100%;
         min-height: 80px;
+        max-width: 100%;
         padding: 0.875rem 1rem;
         font-size: 0.95rem;
         font-family: inherit;
@@ -622,13 +741,13 @@
         resize: vertical;
         transition: all 0.2s ease;
         line-height: 1.5;
+        box-sizing: border-box;
     }
 
     .comment-input:focus {
         outline: none;
         border-color: #7aa3c4;
         background: white;
-        box-shadow: 0 0 0 3px rgba(122, 163, 196, 0.2);
     }
 
     .comment-input::placeholder {

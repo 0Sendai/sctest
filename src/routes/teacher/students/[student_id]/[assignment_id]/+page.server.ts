@@ -175,6 +175,7 @@ export const actions: Actions = {
         const assignmentId = formData.get('assignmentId') as string;
         const studentId = parseInt(formData.get('studentId') as string);
         const commentsJson = formData.get('comments') as string;
+        const correctnessesJson = formData.get('correctnesses') as string;
 
         if (!assignmentId || !studentId) {
             return fail(400, { error: 'Missing required fields' });
@@ -204,9 +205,54 @@ export const actions: Actions = {
                 }
             }
 
-            return { success: true };
+            // Проверяем, пришли ли отметки правильности
+            const updatedSlides: Array<{ slide_id: number; is_correct: boolean }> = [];
+            if (correctnessesJson) {
+                const correctnesses: Array<{ slide_id: number; is_correct: boolean }> = JSON.parse(correctnessesJson);
+
+                // Получаем resultId для этого студента и задания
+                const resultData = await db
+                    .select({ id: assignmentResults.id })
+                    .from(assignmentResults)
+                    .where(
+                        and(
+                            eq(assignmentResults.studentId, studentId),
+                            eq(assignmentResults.assignmentId, assignmentId)
+                        )
+                    )
+                    .limit(1);
+
+                if (resultData.length > 0) {
+                    const resultId = resultData[0].id;
+
+                    // Обновляем is_correct для каждого слайда
+                    for (const correctness of correctnesses) {
+                        await db
+                            .update(slideResults)
+                            .set({
+                                is_correct: correctness.is_correct,
+                            })
+                            .where(
+                                and(
+                                    eq(slideResults.result_id, resultId),
+                                    eq(slideResults.slide_id, correctness.slide_id)
+                                )
+                            );
+
+                        updatedSlides.push({
+                            slide_id: correctness.slide_id,
+                            is_correct: correctness.is_correct,
+                        });
+                    }
+                }
+            }
+
+            return {
+                success: true,
+                updatedSlides,
+            };
         } catch (dbError) {
-            console.error('Database error (slideComments):', dbError);
+            console.error('Database error:', dbError);
             return fail(500, { error: 'Database error' });
         }
     },
