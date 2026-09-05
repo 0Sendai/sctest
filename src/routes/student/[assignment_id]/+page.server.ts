@@ -59,10 +59,6 @@ export async function load({ params, locals }) {
             if ('correct' in content) {
                 content = { ...content, correct: undefined };
             }
-            // Для text: убираем correctAnswer
-            if ('correctAnswer' in content) {
-                content = { ...content, correctAnswer: undefined };
-            }
         }
         return {
             id: slide.id,

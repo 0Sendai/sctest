@@ -75,10 +75,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
             const studentIndex = variants.indexOf(studentAnswer);
             isCorrect = studentIndex === correctIndex;
         } else if (slide[0].type === 'text' && 'correctAnswer' in slideContent) {
-            const correctAnswer = slideContent.correctAnswer as string;
             const studentAnswer = (answer as string)?.trim().toLowerCase();
-            const correctTrimmed = correctAnswer.trim().toLowerCase();
-            isCorrect = studentAnswer === correctTrimmed;
         }
 
         // Сохраняем или обновляем результат слайда
