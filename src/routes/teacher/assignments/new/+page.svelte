@@ -1,12 +1,11 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
-
-    let { form, students }: { form?: any; students: Student[] } = $props();
-
     interface Student {
         id: number;
         name: string;
     }
+    let { form, data } = $props();
+
 
     interface Slide {
         type: 'quiz' | 'text';
@@ -35,7 +34,7 @@
     }
 
     const filteredStudents = $derived(
-        students.filter(s =>
+        data.students.filter(s =>
             s.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
     );

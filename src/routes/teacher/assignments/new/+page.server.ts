@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, error } from '@sveltejs/kit';
 import type { InferInsertModel } from 'drizzle-orm';
 
 import { assignments, slides, assignmentResults, users } from '$lib/server/db/schema';
@@ -107,8 +107,9 @@ async function parseForm(form: FormData): Promise<[string, SlideDb[]] | null> {
 export async function load({ locals }) {
     if (!locals.user?.id) {
         console.log('teacher/assignments/new bad user id');
-        return fail(500, 'bad user id');
+        throw error(500, 'bad user id');
     }
+
 
     const students = await locals.db.select({
         id: users.id,
@@ -117,7 +118,7 @@ export async function load({ locals }) {
       .where(eq(users.role, 'student'))
       .orderBy(users.name);
 
-    return { students };
+    return { students: students };
 }
 
 export const actions = {
