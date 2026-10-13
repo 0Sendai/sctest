@@ -4,14 +4,16 @@
     let { data } = $props();
     const path = page.url.pathname;
 
-    const statusLabels = {
+    const statusLabels: Record<string, string> = {
         in_progress: 'В процессе',
         completed: 'Пройдено',
+        not_started: 'Не начато',
     };
 
     const statusClasses: Record<string, string> = {
         in_progress: 'status-in-progress',
         completed: 'status-completed',
+        not_started: 'status-not-started',
     };
 
     const gradedLabels: Record<string, string> = {
@@ -90,10 +92,14 @@
                                         </span>
                                     {/if}
                                 </div>
-                                <span class="status-badge {statusClasses[result.status]}">
-                                    {statusLabels[result.status]}
+                                <span class="status-badge {statusClasses[result.displayStatus ?? result.status]}">
+                                    {statusLabels[result.displayStatus ?? result.status]}
                                 </span>
-                                {#if result.status === 'in_progress'}
+                                {#if result.displayStatus === 'not_started'}
+                                    <a href="{path}/{result.assignment.id}" class="btn-continue">
+                                        Начать
+                                    </a>
+                                {:else if result.status === 'in_progress'}
                                     <a href="{path}/{result.assignment.id}" class="btn-continue">
                                         Продолжить
                                     </a>
@@ -317,6 +323,12 @@
         background: #fef3c7;
         color: #d97706;
         border: 1px solid #fcd34d;
+    }
+
+    .status-not-started {
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #d1d5db;
     }
 
     .status-completed {

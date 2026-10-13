@@ -61,11 +61,17 @@ export async function load({ locals }) {
         if (result.status === 'completed' && hasCommentsArray[commentIndex]) {
             isGraded = true;
         }
+        // Если статус in_progress, но currentSlideId null — студент ещё не начинал задание
+        let displayStatus: string = result.status;
+        if (result.status === 'in_progress' && !result.currentSlideId) {
+            displayStatus = 'not_started';
+        }
         commentIndex++;
         return {
             ...result,
             assignment,
             isGraded,
+            displayStatus,
         };
     });
 
