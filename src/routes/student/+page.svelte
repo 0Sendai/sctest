@@ -82,7 +82,13 @@
                                     </svg>
                                 </div>
                                 <div class="assignment-info">
-                                    <span class="assignment-title">{result.assignment.title}</span>
+                                    {#if result.status === 'completed' && result.isGraded}
+                                        <a href="/student/results/{result.assignment.id}" class="assignment-title-link">
+                                            <span class="assignment-title">{result.assignment.title}</span>
+                                        </a>
+                                    {:else}
+                                        <span class="assignment-title">{result.assignment.title}</span>
+                                    {/if}
                                     <span class="assignment-date">
                                         {formatDate(result.startedAt)}
                                     </span>
@@ -102,6 +108,10 @@
                                 {:else if result.status === 'in_progress'}
                                     <a href="{path}/{result.assignment.id}" class="btn-continue">
                                         Продолжить
+                                    </a>
+                                {:else if result.status === 'completed' && result.isGraded}
+                                    <a href="/student/results/{result.assignment.id}" class="btn-continue btn-results">
+                                        Результаты
                                     </a>
                                 {/if}
                             </li>
@@ -288,6 +298,19 @@
         color: #374151;
     }
 
+    .assignment-title-link {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #7aa3c4;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .assignment-title-link:hover {
+        color: #5a8aad;
+        text-decoration: underline;
+    }
+
     .assignment-date {
         font-size: 0.85rem;
         color: #6b7280;
@@ -354,6 +377,14 @@
     .btn-continue:hover {
         transform: translateY(-1px);
         box-shadow: 0 4px 12px rgba(142, 177, 209, 0.4);
+    }
+
+    .btn-results {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+
+    .btn-results:hover {
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
     }
 
     @media (max-width: 640px) {
