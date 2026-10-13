@@ -1,8 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
-import { assignments, slides } from '$lib/server/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { assignments, slides, assignmentResults, users } from '$lib/server/db/schema';
+import { eq, and, asc, inArray, ne } from 'drizzle-orm';
 
 type Slide = {
     type: string;
@@ -47,9 +47,27 @@ export async function load({ params, locals }) {
         .where(eq(slides.assignment_id, assignmentId))
         .orderBy(asc(slides.position));
 
+    // Get all students
+    const students = await locals.db.select({
+        id: users.id,
+        name: users.name,
+    }).from(users)
+      .where(eq(users.role, 'student'))
+      .orderBy(users.name);
+
+    // Get students already assigned to this assignment
+    const assignedStudentIds = await locals.db
+        .select({ studentId: assignmentResults.studentId })
+        .from(assignmentResults)
+        .where(eq(assignmentResults.assignmentId, assignmentId));
+
+    const assignedSet = new Set(assignedStudentIds.map(r => r.studentId));
+
     return {
         assignment,
         slides: assignmentSlides,
+        students,
+        assignedStudentIds: [...assignedSet],
     };
 }
 
@@ -155,6 +173,22 @@ export const actions = {
         }
         const [title, slideDb] = parsedForm;
 
+        // Parse selected student IDs from JSON
+        const studentIdsJson = form.get('studentIdsJson');
+        let newStudentIds: number[] = [];
+        if (studentIdsJson && typeof studentIdsJson === 'string') {
+            try {
+                newStudentIds = JSON.parse(studentIdsJson);
+                if (!Array.isArray(newStudentIds)) {
+                    newStudentIds = [];
+                }
+            } catch (e) {
+                console.log('Failed to parse studentIdsJson:', e);
+                newStudentIds = [];
+            }
+        }
+        console.log(`New selected student IDs:`, newStudentIds);
+
         if (!locals.user) {
             console.log("no locals.user");
             return fail(500, { error: "no locals.user" });
@@ -189,6 +223,32 @@ export const actions = {
                 if (slideDb.length > 0) {
                     slideDb.forEach((slide: SlideDb) => { slide.assignment_id = assignmentId; });
                     await tx.insert(slides).values(slideDb);
+                }
+
+                // Sync student assignments
+                // Remove assignments for students no longer selected
+                if (newStudentIds.length > 0) {
+                    await tx.delete(assignmentResults)
+                        .where(and(
+                            eq(assignmentResults.assignmentId, assignmentId),
+                            ne(assignmentResults.studentId, -1) // always true, but needed for type
+                        ));
+                    // Actually, let's be more precise
+                }
+                
+                // Delete all existing assignment results for this assignment
+                await tx.delete(assignmentResults)
+                    .where(eq(assignmentResults.assignmentId, assignmentId));
+
+                // Insert new assignment results
+                if (newStudentIds.length > 0) {
+                    const assignmentResultsToInsert = newStudentIds.map(studentId => ({
+                        studentId,
+                        assignmentId,
+                        status: 'in_progress' as const,
+                    }));
+                    await tx.insert(assignmentResults).values(assignmentResultsToInsert);
+                    console.log(`Created ${newStudentIds.length} assignment results`);
                 }
             });
         } catch (error) {

@@ -1,7 +1,8 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { InferInsertModel } from 'drizzle-orm';
 
-import { assignments, slides } from '$lib/server/db/schema';
+import { assignments, slides, assignmentResults, users } from '$lib/server/db/schema';
+import { eq } from 'drizzle-orm';
 
 type Slide = {
     type: string;
@@ -103,6 +104,22 @@ async function parseForm(form: FormData): Promise<[string, SlideDb[]] | null> {
     return [title as string, slideDb]; 
 }
 
+export async function load({ locals }) {
+    if (!locals.user?.id) {
+        console.log('teacher/assignments/new bad user id');
+        return fail(500, 'bad user id');
+    }
+
+    const students = await locals.db.select({
+        id: users.id,
+        name: users.name,
+    }).from(users)
+      .where(eq(users.role, 'student'))
+      .orderBy(users.name);
+
+    return { students };
+}
+
 export const actions = {
     default: async ({ request, locals }) => {
         const form = await request.formData();
@@ -133,6 +150,22 @@ export const actions = {
         }
         const user = locals.user;
 
+        // Parse selected student IDs from JSON
+        const studentIdsJson = form.get('studentIdsJson');
+        let studentIds: number[] = [];
+        if (studentIdsJson && typeof studentIdsJson === 'string') {
+            try {
+                studentIds = JSON.parse(studentIdsJson);
+                if (!Array.isArray(studentIds)) {
+                    studentIds = [];
+                }
+            } catch (e) {
+                console.log('Failed to parse studentIdsJson:', e);
+                studentIds = [];
+            }
+        }
+        console.log(`Selected student IDs:`, studentIds);
+
         try {
             await locals.db.transaction(async (tx) => {
                 let [assignment] = await tx.insert(assignments)
@@ -144,13 +177,25 @@ export const actions = {
                 if (typeof assignment.id !==  'string' ) {
                     console.log("bad assignment_id");
                     tx.rollback();
+                    return;
                 }
                 slideDb.forEach((slide: SlideDb) => {slide.assignment_id = assignment.id});
                 await tx.insert(slides).values(slideDb);
+
+                // Create assignment results for selected students
+                if (studentIds.length > 0) {
+                    const assignmentResultsToInsert = studentIds.map(studentId => ({
+                        studentId,
+                        assignmentId: assignment.id,
+                        status: 'in_progress' as const,
+                    }));
+                    await tx.insert(assignmentResults).values(assignmentResultsToInsert);
+                    console.log(`Created ${studentIds.length} assignment results`);
+                }
             })
         } catch (error) {
             console.log("db insertion error: ", error);
-            return fail(500, "db insertion error");
+            return fail(500, {error: "db insertion error"});
         }
 
         console.log("assignment successfully inserted!");
