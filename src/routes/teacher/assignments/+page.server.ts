@@ -9,6 +9,7 @@ export async function load({ locals }) {
     }
     
     const assignments_list = await locals.db.select({
+        id: assignments.id,
         title: assignments.title,
     }).from(assignments)
       .where(eq(assignments.author_id, locals.user.id));

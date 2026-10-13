@@ -42,7 +42,7 @@
             {:else}
                 <ul>
                     {#each data.assignments as assignment, index}
-                        <li class="assignment-item" style="animation-delay: {index * 0.05}s">
+                        <a href="/teacher/assignments/edit/{assignment.id}" class="assignment-item" style="animation-delay: {index * 0.05}s">
                             <div class="assignment-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
@@ -50,7 +50,11 @@
                                 </svg>
                             </div>
                             <span class="assignment-title">{assignment.title}</span>
-                        </li>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="edit-icon">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </a>
                     {/each}
                 </ul>
             {/if}
@@ -197,6 +201,9 @@
         transition: all 0.2s;
         animation: fadeIn 0.3s ease-out forwards;
         opacity: 0;
+        text-decoration: none;
+        cursor: pointer;
+        color: inherit;
     }
 
     @keyframes fadeIn {
@@ -209,6 +216,17 @@
         background: #f0f7ff;
         border-color: #8eb1d1;
         transform: translateX(4px);
+    }
+
+    .edit-icon {
+        color: #8eb1d1;
+        opacity: 0;
+        transition: all 0.2s;
+        margin-left: auto;
+    }
+
+    .assignment-item:hover .edit-icon {
+        opacity: 1;
     }
 
     .assignment-icon {
