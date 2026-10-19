@@ -1,11 +1,12 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
 
-    const { form } = $props();
+    //const { form } = $props();
     let username = $state('');
     let password = $state('');
 
     let validationError = $state({name: '', pass: ''});
+    let serverError = $state('');
 
     function discardEnter(e: KeyboardEvent) {
         if (e.key == 'Enter')
@@ -17,6 +18,22 @@
         validationError.pass = password ? '' : 'Пароль обязателен';
 
         return !validationError.name && !validationError.pass;
+    }
+
+    async function handleSubmit(event: SubmitEvent) {
+        event.preventDefault();
+        const data = { username: username, password: password };
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error_json = await response.json();
+            serverError = error_json.error;
+            return;
+        }
+        window.location.replace('/');
     }
 </script>
 
@@ -33,24 +50,18 @@
             <p class="subtitle">Войдите в свой аккаунт</p>
         </div>
 
-        {#if form?.error}
+        {#if serverError}
             <div class="error-banner">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
                     <line x1="9" y1="9" x2="15" y2="15"/>
                 </svg>
-                <span>{form.error}</span>
+                <span>{serverError}</span>
             </div>
         {/if}
 
-        <form method="POST" use:enhance={({ cancel, formData }) => {
-            if (!validateInput()) cancel();
-            const username = formData.get('username') as string;
-            const password = formData.get('password') as string;
-            formData.set('username', username.trim());
-            formData.set('password', password.trim());
-        }}>
+        <form method="POST" onsubmit={handleSubmit}>
             <div class="form-group">
                 <label for="username">Имя пользователя</label>
                 <input 

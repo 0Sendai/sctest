@@ -25,7 +25,8 @@ export const handle: Handle = async ({ event, resolve }) => {
             redirect(302, '/login');
         }
     } else {
-        if (event.url.pathname.startsWith('/login'))
+        if (event.url.pathname.startsWith('/login') || 
+            event.url.pathname.startsWith('/api'))
             return await resolve(event);
 
         event.locals.user = null;
