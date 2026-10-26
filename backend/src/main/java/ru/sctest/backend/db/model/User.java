@@ -3,6 +3,9 @@ package ru.sctest.backend.db.model;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -28,6 +31,7 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column
     private UserRole role;
 
