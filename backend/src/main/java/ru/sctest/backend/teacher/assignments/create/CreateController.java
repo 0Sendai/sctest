@@ -2,25 +2,45 @@ package ru.sctest.backend.teacher.assignments.create;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j 
 @RestController 
 @RequestMapping("/api/teacher/assignments/create")
 public class CreateController {
-    private final CreateService createService;
 
-    public CreateController(CreateService createService) {
-        this.createService = createService;
-    }
+    @Autowired 
+    private CreateService createService;
 
     @GetMapping
     public List<StudentDto> getStudents() {
         return createService.getStudents();
     }
 
-    //@PostMapping
-    //public void create()
+    @PostMapping
+    public ResponseEntity<CreateResponse> create(
+        @RequestBody AssignmentDto assignmentDto,
+        @RequestParam Long id
+    ) {
+        try {
+            createService.createAssignment(assignmentDto, id);
+        } catch (AssignmentCreateException e) {
+            String msg = e.getMessage();
+            log.warn(msg);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new CreateResponse.Failed(msg));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(new CreateResponse.Success("Assignment was created"));
+    }
 }
