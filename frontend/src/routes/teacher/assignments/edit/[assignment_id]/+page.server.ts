@@ -1,4 +1,4 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, error } from '@sveltejs/kit';
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
 import { assignments, slides, assignmentResults, users } from '$lib/server/db/schema';
@@ -18,57 +18,15 @@ type AssignmentDb = InferSelectModel<typeof assignments>;
 
 export async function load({ params, locals }) {
     const assignmentId = params.assignment_id;
-    
-    if (!assignmentId || typeof assignmentId !== 'string') {
-        return {
-            assignment: null,
-            slides: [],
-        };
-    }
-
-    console.log(assignmentId);
-    const [assignment] = await locals.db.select()
-        .from(assignments)
-        .where(and(
-            eq(assignments.id, assignmentId),
-            eq(assignments.author_id, locals.user?.id || -1)
-        ))
-        .limit(1);
-
-    if (!assignment) {
-        return {
-            assignment: null,
-            slides: [],
-        };
-    }
-
-    const assignmentSlides = await locals.db.select()
-        .from(slides)
-        .where(eq(slides.assignment_id, assignmentId))
-        .orderBy(asc(slides.position));
-
-    // Get all students
-    const students = await locals.db.select({
-        id: users.id,
-        name: users.name,
-    }).from(users)
-      .where(eq(users.role, 'student'))
-      .orderBy(users.name);
-
-    // Get students already assigned to this assignment
-    const assignedStudentIds = await locals.db
-        .select({ studentId: assignmentResults.studentId })
-        .from(assignmentResults)
-        .where(eq(assignmentResults.assignmentId, assignmentId));
-
-    const assignedSet = new Set(assignedStudentIds.map(r => r.studentId));
-
-    return {
-        assignment,
-        slides: assignmentSlides,
-        students,
-        assignedStudentIds: [...assignedSet],
-    };
+    const response = await fetch(
+        "http://localhost:8080/api/teacher/" + 
+        `assignments/edit?id=${assignmentId}`
+    );
+    if (!response.ok)
+        throw error(500, "bad response from server");
+    const data = await response.json();
+    console.log(data);
+    return { ...data.data };
 }
 
 function checkForString(variable: any): boolean {
