@@ -42,6 +42,9 @@ public class User {
     private List<Assignment> assignments;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "student")
+    private List<AssignmentResult> assignmentResults;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "student")
     private List<SlideComment> slideComments;
 
     public User() {}
