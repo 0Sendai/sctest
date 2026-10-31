@@ -21,8 +21,8 @@ public class SlideComment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "assignment_id", nullable = false)
-    private Assignment assignment;
+    @JoinColumn(name = "assignment_result_id", nullable = false)
+    private AssignmentResult assignmentResult;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "slide_id", nullable = false)

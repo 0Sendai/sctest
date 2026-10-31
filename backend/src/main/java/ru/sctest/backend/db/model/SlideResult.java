@@ -1,7 +1,6 @@
 package ru.sctest.backend.db.model;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -36,7 +35,7 @@ public class SlideResult {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "answer", columnDefinition = "jsonb")
-    private Map<String, Object> answer;
+    private Object answer;
 
     @Column(name = "is_correct")
     private Boolean isCorrect;
