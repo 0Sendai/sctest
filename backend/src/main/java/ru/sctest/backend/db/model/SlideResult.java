@@ -10,9 +10,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import lombok.Data;
 
@@ -23,6 +26,13 @@ import lombok.Data;
 })
 public class SlideResult {
     @Id 
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, 
+        generator = "slide_result_seq_gen")
+    @SequenceGenerator(
+        name = "slide_result_seq_gen",
+        sequenceName = "slide_results_id_seq",
+        allocationSize = 1
+    )
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

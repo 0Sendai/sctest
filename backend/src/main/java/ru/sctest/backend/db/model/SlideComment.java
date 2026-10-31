@@ -6,9 +6,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import lombok.Data;
 
 @Data 
@@ -18,6 +21,13 @@ import lombok.Data;
 })
 public class SlideComment {
     @Id 
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, 
+        generator = "slide_comment_seq_gen")
+    @SequenceGenerator(
+        name = "slide_comment_seq_gen",
+        sequenceName = "slide_comments_id_seq",
+        allocationSize = 1
+    )
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)

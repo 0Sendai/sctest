@@ -16,9 +16,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import lombok.Data;
 
@@ -28,7 +31,14 @@ import lombok.Data;
     @UniqueConstraint(columnNames = {"student", "assignment"})
 })
 public class AssignmentResult {
-    @Id 
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, 
+        generator = "assignment_result_seq_gen")
+    @SequenceGenerator(
+        name = "assignment_result_seq_gen",
+        sequenceName = "assignment_results_id_seq",
+        allocationSize = 1
+    )
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
