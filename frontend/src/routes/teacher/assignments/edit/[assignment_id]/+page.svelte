@@ -23,7 +23,7 @@
     }
 
     const init = (() => {
-        const initialSlides: Slide[] = data?.assignment && data?.slides
+        const initialSlides: Slide[] = data?.title && data?.slides
             ? data.slides.map((s: LoadedSlide) => {
                 const content = s.content as any;
                 return {
@@ -40,7 +40,7 @@
                 correctVariantIndex: 0,
             }];
 
-        const initialTitle = data?.assignment?.title || '';
+        const initialTitle = data?.title || '';
         const initialStudentIds: number[] = data?.assignedStudentIds || [];
         const initialStudents = data?.students || [];
 
@@ -69,16 +69,16 @@
 
     const allSelected = $derived(
         filteredStudents.length > 0 &&
-        filteredStudents.every(s => hasStudentId(s.id))
+        filteredStudents.every((s: Student) => hasStudentId(s.id))
     );
 
     const partiallySelected = $derived(
-        !allSelected && filteredStudents.some(s => hasStudentId(s.id))
+        !allSelected && filteredStudents.some((s: Student) => hasStudentId(s.id))
     );
 
     function toggleSelectAll() {
         if (allSelected) {
-            selectedStudentIds = filteredStudents.map(s => s.id);
+            selectedStudentIds = filteredStudents.map((s: Student) => s.id);
         } else {
             selectedStudentIds = [];
         }
