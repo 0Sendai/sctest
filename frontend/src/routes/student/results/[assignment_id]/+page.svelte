@@ -1,16 +1,14 @@
 <script lang="ts">
-    import { page } from '$app/state';
-
     let { data } = $props();
 
-    const assignment = $derived(data.assignment);
-    const result = $derived(data.result);
-    const slides = $derived(data.slides);
-    const answers = $derived(data.answers);
-    const comments = $derived(data.comments);
+    const title    = $derived(data.result.title);
+    const result   = $derived(data.result.result);
+    const slides   = $derived(data.result.slides);
+    const answers  = $derived(data.result.answers);
+    const comments = $derived(data.result.comments);
 
-    function formatDate(date: Date): string {
-        return new Date(date).toLocaleDateString('ru-RU', {
+    function formatDate(dateValue: string): string {
+        return new Date(dateValue).toLocaleDateString('ru-RU', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
@@ -20,11 +18,11 @@
     }
 
     function getSlideAnswer(slideId: number): any {
-        return answers?.get(slideId);
+        return answers?.[slideId];
     }
 
     function getSlideComment(slideId: number): string | undefined {
-        return comments?.get(slideId);
+        return comments?.[slideId];
     }
 </script>
 
@@ -60,7 +58,7 @@
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                         </svg>
                     </div>
-                    <h1 class="results-title">{assignment?.title}</h1>
+                    <h1 class="results-title">{title}</h1>
                     {#if result}
                     <div class="results-dates">
                         <span class="date-item">
