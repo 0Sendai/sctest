@@ -1,6 +1,4 @@
-import { fail } from '@sveltejs/kit';
-import { eq, asc, inArray, count, ne, and } from 'drizzle-orm';
-import { assignments, assignmentResults, slideComments } from '$lib/server/db/schema';
+import { fail, error } from '@sveltejs/kit';
 import { logout } from '$lib/server/logout';
 
 export async function load({ locals }) {
@@ -10,72 +8,14 @@ export async function load({ locals }) {
     }
 
     const studentId = locals.user.id;
-
-    // Получаем все результаты студента
-    const results = await locals.db
-        .select()
-        .from(assignmentResults)
-        .where(eq(assignmentResults.studentId, studentId))
-        .orderBy(asc(assignmentResults.startedAt));
-
-    // Получаем названия всех заданий
-    const assignmentIds = results.map(r => r.assignmentId);
-    const assignmentsData = assignmentIds.length > 0
-        ? await locals.db
-            .select({
-                id: assignments.id,
-                title: assignments.title,
-            })
-            .from(assignments)
-            .where(inArray(assignments.id, assignmentIds as string[]))
-        : [];
-
-    // Объединяем данные
-    const assignmentsMap = new Map(
-        assignmentsData.map(a => [a.id, a])
-    );
-
-    // Получаем комментарии для завершенных заданий
-    const completedResults = results.filter(r => r.status === 'completed');
-    const commentsPromises = completedResults.map(r =>
-        locals.db
-            .select()
-            .from(slideComments)
-            .where(
-                and(
-                    eq(slideComments.assignment_id, r.assignmentId),
-                    eq(slideComments.student_id, studentId)
-                )
-            )
-            .then(comments => comments.some(c => c.comment && c.comment.trim() !== ''))
-    );
-
-    const hasCommentsArray = commentsPromises.length > 0
-        ? await Promise.all(commentsPromises)
-        : [];
-
-    let commentIndex = 0;
-    const resultsWithAssignments = results.map(result => {
-        const assignment = assignmentsMap.get(result.assignmentId) || { id: result.assignmentId, title: 'Unknown' };
-        let isGraded = false;
-        if (result.status === 'completed' && hasCommentsArray[commentIndex]) {
-            isGraded = true;
-        }
-        // Если статус in_progress, но currentSlideId null — студент ещё не начинал задание
-        let displayStatus: string = result.status;
-        if (result.status === 'in_progress' && !result.currentSlideId) {
-            displayStatus = 'not_started';
-        }
-        commentIndex++;
-        return {
-            ...result,
-            assignment,
-            isGraded,
-            displayStatus,
-        };
-    });
-
-    return { results: resultsWithAssignments };
+    const response = await fetch(`http://127.0.0.1:8080/api/student?id=${studentId}`);
+    if (!response.ok) {
+        console.log(response)
+        throw  error(500, 'bad response from server');
+    }
+    const results = await response.json();
+    console.log(results);
+    return { results: results["results"] };
 }
 
 export const actions = {
