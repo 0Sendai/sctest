@@ -48,6 +48,9 @@ public class AssignmentResult {
     @Enumerated(EnumType.STRING)
     private AssignmentResultStatus status;
 
+    @Column(name = "is_graded", nullable = false)
+    private Boolean isGraded;
+
     @CreationTimestamp 
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt;
@@ -61,4 +64,7 @@ public class AssignmentResult {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignmentResult")
     private List<SlideResult> slideResults;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignmentResult")
+    private List<SlideComment> slideComments;
 }

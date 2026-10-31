@@ -50,6 +50,6 @@ public class Assignment {
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "assignment")
     private AssignmentResult assignmentResult;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment")
-    private List<SlideComment> slideComments;
+    //@OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment")
+    //private List<SlideComment> slideComments;
 }
