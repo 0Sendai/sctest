@@ -14,12 +14,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.FetchType;
-import lombok.Getter;
+import lombok.Data;
 
-
+@Data 
 @Entity
 @Table(name = "users")
-@Getter 
 public class User {
     @Id
     private Long id;
