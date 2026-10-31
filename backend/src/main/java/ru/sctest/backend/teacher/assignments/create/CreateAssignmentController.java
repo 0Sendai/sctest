@@ -17,10 +17,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j 
 @RestController 
 @RequestMapping("/api/teacher/assignments/create")
-public class CreateController {
+public class CreateAssignmentController {
 
     @Autowired 
-    private CreateService createService;
+    private CreateAssignmentService createService;
 
     @GetMapping
     public List<StudentDto> getStudents() {

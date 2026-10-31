@@ -22,7 +22,7 @@ import ru.sctest.backend.db.model.UserRole;
 
 @Service 
 @Slf4j 
-public class CreateService {
+public class CreateAssignmentService {
 
     @Autowired 
     private UserRepository userRepository;
