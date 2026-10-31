@@ -1,6 +1,4 @@
 import { error, fail, redirect } from '@sveltejs/kit';
-import { eq, and, asc, inArray } from 'drizzle-orm';
-import { assignments, slides, assignmentResults, slideResults, slideComments } from '$lib/server/db/schema';
 
 export async function load({ params, locals }) {
     if (!locals.user?.id) {
