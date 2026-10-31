@@ -5,15 +5,15 @@
     const path = page.url.pathname;
 
     const statusLabels: Record<string, string> = {
-        in_progress: 'В процессе',
-        completed: 'Пройдено',
-        not_started: 'Не начато',
+        IN_PROGRESS: 'В процессе',
+        COMPLETED: 'Пройдено',
+        NOT_STARTED: 'Не начато',
     };
 
     const statusClasses: Record<string, string> = {
-        in_progress: 'status-in-progress',
-        completed: 'status-completed',
-        not_started: 'status-not-started',
+        IN_PROGRESS: 'status-in-progress',
+        COMPLETED: 'status-COMPLETED',
+        NOT_STARTED: 'status-not-started',
     };
 
     const gradedLabels: Record<string, string> = {
@@ -26,7 +26,8 @@
         'false': 'graded-no',
     };
 
-    function formatDate(date: Date): string {
+    function formatDate(dateValue: Date | string): string {
+        const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
         return date.toLocaleDateString('ru-RU', {
             day: '2-digit',
             month: '2-digit',
@@ -82,7 +83,7 @@
                                     </svg>
                                 </div>
                                 <div class="assignment-info">
-                                    {#if result.status === 'completed' && result.isGraded}
+                                    {#if result.status === 'COMPLETED' && result.isGraded}
                                         <a href="/student/results/{result.assignment.id}" class="assignment-title-link">
                                             <span class="assignment-title">{result.assignment.title}</span>
                                         </a>
@@ -92,24 +93,24 @@
                                     <span class="assignment-date">
                                         {formatDate(result.startedAt)}
                                     </span>
-                                    {#if result.status === 'completed'}
+                                    {#if result.status === 'COMPLETED'}
                                         <span class="graded-badge {gradedClasses[String(result.isGraded)]}">
                                             {gradedLabels[String(result.isGraded)]}
                                         </span>
                                     {/if}
                                 </div>
-                                <span class="status-badge {statusClasses[result.displayStatus ?? result.status]}">
-                                    {statusLabels[result.displayStatus ?? result.status]}
+                                <span class="status-badge {statusClasses[result.status]}">
+                                    {statusLabels[result.status]}
                                 </span>
-                                {#if result.displayStatus === 'not_started'}
+                                {#if result.status === 'NOT_STARTED'}
                                     <a href="{path}/{result.assignment.id}" class="btn-continue">
                                         Начать
                                     </a>
-                                {:else if result.status === 'in_progress'}
+                                {:else if result.status === 'IN_PROGRESS'}
                                     <a href="{path}/{result.assignment.id}" class="btn-continue">
                                         Продолжить
                                     </a>
-                                {:else if result.status === 'completed' && result.isGraded}
+                                {:else if result.status === 'COMPLETED' && result.isGraded}
                                     <a href="/student/results/{result.assignment.id}" class="btn-continue btn-results">
                                         Результаты
                                     </a>
@@ -354,7 +355,7 @@
         border: 1px solid #d1d5db;
     }
 
-    .status-completed {
+    .status-COMPLETED {
         background: #d1fae5;
         color: #059669;
         border: 1px solid #6ee7b7;
