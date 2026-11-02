@@ -7,7 +7,7 @@ public record PostRequestDto(
     UUID assignmentId,
     Long studentId,
     List<CommentsDto> comments,
-    List<CorrectnessDto> correctness 
+    List<CorrectnessDto> correctnesses
 ) {
 
 }

@@ -167,10 +167,10 @@ public class StudentAssignmentResultService {
             }
         }
 
-        List<CorrectnessDto> correctness = requestBody.correctness();
+        List<CorrectnessDto> correctnesses = requestBody.correctnesses();
         List<UpdatedSlidesDto> updatedSlides = new ArrayList<>();
-        if (!correctness.isEmpty()) {
-            for (var cor: correctness) {
+        if (!correctnesses.isEmpty()) {
+            for (var cor: correctnesses) {
                 Optional<Slide> slideOpt = slideRepository.findById(cor.slideId());
                 if (slideOpt.isEmpty()) {
                     return new PostResponse.Fail("Can't find slide");
