@@ -1,6 +1,6 @@
 <script lang="ts">
     import { type ActionData } from './$types';
-    let { data, formActionData } = $props<{ data: typeof data, formActionData: ActionData }>();
+    let { data } = $props();
 
     const student = $derived(data.student);
     const assignment = $derived(data.assignment);
@@ -78,7 +78,7 @@
     }
 
     function getComment(slideId: number): string {
-        return slideComments.get(slideId) || '';
+        return slideComments?.[slideId] || '';
     }
 
     // Собираем все комментарии из textarea
