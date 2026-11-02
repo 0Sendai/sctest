@@ -6,10 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ru.sctest.backend.teacher.students.student.assignment.dto.PostRequestDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.PostResponse;
 import ru.sctest.backend.teacher.students.student.assignment.dto.StudentInfoResponse;
 
 @RestController 
@@ -36,5 +40,20 @@ public class StudentAssignmentResultController {
         }
         
         return ResponseEntity.status(status).body(response);
+    }
+
+    @PostMapping 
+    public ResponseEntity<PostResponse> saveResult(@RequestBody PostRequestDto requestBody) {
+        PostResponse response = studentAssignmentResultService
+            .updateCorrectness(requestBody);
+        HttpStatus status;
+        if (response instanceof PostResponse.Fail) {
+            status = HttpStatus.INTERNAL_SERVER_ERROR;
+        } else {
+            status = HttpStatus.OK;
+        }
+
+        return ResponseEntity.status(status)
+            .body(response);
     }
 }

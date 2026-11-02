@@ -10,6 +10,7 @@ import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import ru.sctest.backend.db.model.Assignment;
 import ru.sctest.backend.db.model.AssignmentResult;
 import ru.sctest.backend.db.model.Slide;
@@ -22,10 +23,15 @@ import ru.sctest.backend.db.repo.SlideCommentRepository;
 import ru.sctest.backend.db.repo.SlideRepository;
 import ru.sctest.backend.db.repo.SlideResultRepository;
 import ru.sctest.backend.db.repo.UserRepository;
-import ru.sctest.backend.teacher.students.student.assignment.dto.SlideDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.SlideWithResultsDto;
 import ru.sctest.backend.teacher.students.student.assignment.dto.StudentInfoResponse;
+import ru.sctest.backend.teacher.students.student.assignment.dto.UpdatedSlidesDto;
 import ru.sctest.backend.teacher.students.student.assignment.dto.StudentDto;
 import ru.sctest.backend.teacher.students.student.assignment.dto.AssignmentDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.CommentsDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.CorrectnessDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.PostRequestDto;
+import ru.sctest.backend.teacher.students.student.assignment.dto.PostResponse;
 import ru.sctest.backend.teacher.students.student.assignment.dto.ResultDto;
 import ru.sctest.backend.teacher.students.student.assignment.dto.StatsDto;
 
@@ -79,13 +85,13 @@ public class StudentAssignmentResultService {
         final List<SlideComment> slideComments =
             slideCommentRepository.findByAssignmentResultOrderBySlide_Id(assignmentResult);
         
-        final List<SlideDto> slideDtos = new ArrayList<>();
+        final List<SlideWithResultsDto> slideDtos = new ArrayList<>();
         final Map<Long, String> slideCommentsMap = new HashMap<>();
 
         for (int i = 0; i < slides.size(); i++) {
             Slide curSlide = slides.get(i);
             SlideResult curRes = slideResults.get(i);
-            slideDtos.add(new SlideDto(
+            slideDtos.add(new SlideWithResultsDto(
                 curSlide.getId(),
                 curSlide.getType(),
                 curSlide.getPosition(),
@@ -116,6 +122,76 @@ public class StudentAssignmentResultService {
             slideDtos,
             slideCommentsMap,
             new StatsDto(total, answered, correct, incorrect, unaswered)
+        );
+    }
+
+    @Transactional(rollbackOn = Exception.class)
+    public PostResponse updateCorrectness(PostRequestDto requestBody) {
+        Long studId = requestBody.studentId();
+        if (studId == null) {
+            return new PostResponse.Fail("student id is null");
+        }
+        Optional<User> studentOpt = userRepository.findById(requestBody.studentId());
+        if (studentOpt.isEmpty()) {
+            return new PostResponse.Fail("Can't find student");
+        }
+        final User student = studentOpt.get();
+
+        UUID assignId = requestBody.assignmentId();
+        if (assignId == null) {
+            return new PostResponse.Fail("assignment id is null");
+        }
+        Optional<Assignment> assignmentOpt = assignmentRepository.findById(assignId);
+        if (assignmentOpt.isEmpty()) {
+            return new PostResponse.Fail("Can't find assignment");
+        }
+        final Assignment assignment = assignmentOpt.get();
+
+        Optional<AssignmentResult> assignResOpt = assignmentResultRepository
+            .findByAssignmentAndStudent(assignment, student);
+        if (assignResOpt.isEmpty()) {
+            return new PostResponse.Fail("Can't find assignment result");
+        }
+        final AssignmentResult assignmentResult = assignResOpt.get();
+
+        List<CommentsDto> comments = requestBody.comments();
+        if (!comments.isEmpty()) {
+            for (var comment: comments) {
+                Slide slide = slideRepository.getReferenceById(comment.slideId());
+                SlideComment slideComment = new SlideComment();
+                slideComment.setAssignmentResult(assignmentResult);
+                slideComment.setStudent(student);
+                slideComment.setSlide(slide);
+                slideComment.setComment(comment.comment());
+                slideCommentRepository.upsertComment(slideComment);
+            }
+        }
+
+        List<CorrectnessDto> correctness = requestBody.correctness();
+        List<UpdatedSlidesDto> updatedSlides = new ArrayList<>();
+        if (!correctness.isEmpty()) {
+            for (var cor: correctness) {
+                Optional<Slide> slideOpt = slideRepository.findById(cor.slideId());
+                if (slideOpt.isEmpty()) {
+                    return new PostResponse.Fail("Can't find slide");
+                }
+                Slide slide = slideOpt.get();
+                SlideResult slideResult;
+                Optional<SlideResult> slideResultOpt = slideResultRepository
+                    .findByAssignmentResultAndSlide(assignmentResult, slide);
+                if (slideResultOpt.isEmpty()) {
+                    slideResult = new SlideResult();
+                } else {
+                    slideResult = slideResultOpt.get();
+                }
+                slideResult.setIsCorrect(cor.isCorrect());
+                slideResultRepository.save(slideResult);
+                updatedSlides.add(new UpdatedSlidesDto(slide.getId(), cor.isCorrect()));
+            }
+        }
+        return new PostResponse.Success(
+            true,
+            updatedSlides
         );
     }
 }
