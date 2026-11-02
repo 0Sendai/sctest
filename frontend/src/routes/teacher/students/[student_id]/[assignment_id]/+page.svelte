@@ -67,11 +67,11 @@
     }
 
     // Собираем все отметки правильности
-    function getAllCorrectnesses(): Array<{ slide_id: number; is_correct: boolean }> {
-        const correctnesses: Array<{ slide_id: number; is_correct: boolean }> = [];
+    function getAllCorrectnesses(): Array<{ slideId: number; isCorrect: boolean }> {
+        const correctnesses: Array<{ slideId: number; isCorrect: boolean }> = [];
         for (const [slideId, isCorrect] of Object.entries(correctnessStates)) {
             if (isCorrect !== null) {
-                correctnesses.push({ slide_id: Number(slideId), is_correct: isCorrect });
+                correctnesses.push({ slideId: Number(slideId), isCorrect: isCorrect });
             }
         }
         return correctnesses;
@@ -82,15 +82,15 @@
     }
 
     // Собираем все комментарии из textarea
-    function getAllComments(): Array<{ slide_id: number; comment: string }> {
+    function getAllComments(): Array<{ slideId: number; comment: string }> {
         const textareas = document.querySelectorAll('.comment-input');
-        const comments: Array<{ slide_id: number; comment: string }> = [];
+        const comments: Array<{ slideId: number; comment: string }> = [];
         textareas.forEach((textarea: Element) => {
             const ta = textarea as HTMLTextAreaElement;
             const slideId = parseInt(ta.dataset.slideId || '0');
             const comment = ta.value;
             if (slideId) {
-                comments.push({ slide_id: slideId, comment });
+                comments.push({ slideId: slideId, comment });
             }
         });
         return comments;
@@ -124,7 +124,15 @@
 
             const response = await fetch(`/teacher/students/${student.id}/${assignment.id}`, {
                 method: 'POST',
-                body: formData,
+                headers: {
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify({
+                    assignmentId: assignment.id,
+                    studentId: student.id,
+                    comments: comments,
+                    correctnesses: correctnesses
+                }),
             });
 
             if (response.ok) {
@@ -132,7 +140,7 @@
                 // Обновляем состояния правильности из ответа сервера
                 if (result.updatedSlides) {
                     for (const update of result.updatedSlides) {
-                        correctnessStates[update.slide_id] = update.is_correct;
+                        correctnessStates[update.slideId] = update.isCorrect;
                     }
                 }
                 saveMessage = { type: 'success', text: 'Все изменения сохранены' };
