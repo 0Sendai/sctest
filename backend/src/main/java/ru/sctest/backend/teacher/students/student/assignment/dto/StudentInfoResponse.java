@@ -9,7 +9,7 @@ public sealed interface StudentInfoResponse
             StudentDto student,
             AssignmentDto assignment,
             ResultDto result,
-            List<SlideDto> slides,
+            List<SlideWithResultsDto> slides,
             Map<Long, String> slideComments,
             StatsDto stats
         )
