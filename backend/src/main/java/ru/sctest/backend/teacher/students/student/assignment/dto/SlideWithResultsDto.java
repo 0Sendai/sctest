@@ -3,7 +3,7 @@ package ru.sctest.backend.teacher.students.student.assignment.dto;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public record SlideDto(
+public record SlideWithResultsDto(
     Long id,
     String type,
     Integer position,
