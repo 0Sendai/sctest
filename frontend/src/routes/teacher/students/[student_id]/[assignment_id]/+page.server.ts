@@ -30,99 +30,114 @@ export async function load({ params, locals }) {
     return { ...data };
 }
 
-export const actions: Actions = {
-    default: async ({ request, locals }) => {
-        if (!locals.user?.id) {
-            return fail(401, { error: 'Unauthorized' });
-        }
+// export const actions: Actions = {
+//     default: async ({ request, locals }) => {
+//         if (!locals.user?.id) {
+//             return fail(401, { error: 'Unauthorized' });
+//         }
 
-        if (locals.user.role !== 'teacher' && locals.user.role !== 'admin') {
-            return fail(403, { error: 'Forbidden' });
-        }
+//         if (locals.user.role !== 'teacher' && locals.user.role !== 'admin') {
+//             return fail(403, { error: 'Forbidden' });
+//         }
 
-        const formData = await request.formData();
-        const assignmentId = formData.get('assignmentId') as string;
-        const studentId = parseInt(formData.get('studentId') as string);
-        const commentsJson = formData.get('comments') as string;
-        const correctnessesJson = formData.get('correctnesses') as string;
+//         const reqData = await request.json();
+//         const response = await fetch('http://127.0.0.1:8080/teacher/students/student/assignment', {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json'
+//             },
+//             body: JSON.stringify(reqData)
+//         });
+//         if (!response.ok) {
+//             const msg = await response.text();
+//             return fail(500, { error: msg });
+//         }
+//         const data = await response.json();
+//         return { ...data };
 
-        if (!assignmentId || !studentId) {
-            return fail(400, { error: 'Missing required fields' });
-        }
+//         // const formData = await request.formData();
+//         // const assignmentId = formData.get('assignmentId') as string;
+//         // const studentId = parseInt(formData.get('studentId') as string);
+//         // const commentsJson = formData.get('comments') as string;
+//         // const correctnessesJson = formData.get('correctnesses') as string;
 
-        try {
-            // Проверяем, пришли ли комментарии как JSON (массовое сохранение)
-            if (commentsJson) {
-                const comments: Array<{ slide_id: number; comment: string }> = JSON.parse(commentsJson);
+//         // if (!assignmentId || !studentId) {
+//         //     return fail(400, { error: 'Missing required fields' });
+//         // }
 
-                // Сохраняем все комментарии
-                for (const c of comments) {
-                    await db
-                        .insert(slideComments)
-                        .values({
-                            assignment_id: assignmentId,
-                            slide_id: c.slide_id,
-                            student_id: studentId,
-                            comment: c.comment || null,
-                        })
-                        .onConflictDoUpdate({
-                            target: [slideComments.assignment_id, slideComments.student_id, slideComments.slide_id],
-                            set: {
-                                comment: c.comment || null,
-                            },
-                        });
-                }
-            }
+//         // try {
+//         //     // Проверяем, пришли ли комментарии как JSON (массовое сохранение)
+//         //     if (commentsJson) {
+//         //         const comments: Array<{ slide_id: number; comment: string }> = JSON.parse(commentsJson);
 
-            // Проверяем, пришли ли отметки правильности
-            const updatedSlides: Array<{ slide_id: number; is_correct: boolean }> = [];
-            if (correctnessesJson) {
-                const correctnesses: Array<{ slide_id: number; is_correct: boolean }> = JSON.parse(correctnessesJson);
+//         //         // Сохраняем все комментарии
+//         //         for (const c of comments) {
+//         //             await db
+//         //                 .insert(slideComments)
+//         //                 .values({
+//         //                     assignment_id: assignmentId,
+//         //                     slide_id: c.slide_id,
+//         //                     student_id: studentId,
+//         //                     comment: c.comment || null,
+//         //                 })
+//         //                 .onConflictDoUpdate({
+//         //                     target: [slideComments.assignment_id, slideComments.student_id, slideComments.slide_id],
+//         //                     set: {
+//         //                         comment: c.comment || null,
+//         //                     },
+//         //                 });
+//         //         }
+//         //     }
 
-                // Получаем resultId для этого студента и задания
-                const resultData = await db
-                    .select({ id: assignmentResults.id })
-                    .from(assignmentResults)
-                    .where(
-                        and(
-                            eq(assignmentResults.studentId, studentId),
-                            eq(assignmentResults.assignmentId, assignmentId)
-                        )
-                    )
-                    .limit(1);
+//         //     // Проверяем, пришли ли отметки правильности
+//         //     const updatedSlides: Array<{ slide_id: number; is_correct: boolean }> = [];
+//         //     if (correctnessesJson) {
+//         //         const correctnesses: Array<{ slide_id: number; is_correct: boolean }> = JSON.parse(correctnessesJson);
 
-                if (resultData.length > 0) {
-                    const resultId = resultData[0].id;
+//         //         // Получаем resultId для этого студента и задания
+//         //         const resultData = await db
+//         //             .select({ id: assignmentResults.id })
+//         //             .from(assignmentResults)
+//         //             .where(
+//         //                 and(
+//         //                     eq(assignmentResults.studentId, studentId),
+//         //                     eq(assignmentResults.assignmentId, assignmentId)
+//         //                 )
+//         //             )
+//         //             .limit(1);
 
-                    // Обновляем is_correct для каждого слайда
-                    for (const correctness of correctnesses) {
-                        await db
-                            .update(slideResults)
-                            .set({
-                                is_correct: correctness.is_correct,
-                            })
-                            .where(
-                                and(
-                                    eq(slideResults.result_id, resultId),
-                                    eq(slideResults.slide_id, correctness.slide_id)
-                                )
-                            );
+//         //         if (resultData.length > 0) {
+//         //             const resultId = resultData[0].id;
 
-                        updatedSlides.push({
-                            slide_id: correctness.slide_id,
-                            is_correct: correctness.is_correct,
-                        });
-                    }
-                }
-            }
+//         //             // Обновляем is_correct для каждого слайда
+//         //             for (const correctness of correctnesses) {
+//         //                 await db
+//         //                     .update(slideResults)
+//         //                     .set({
+//         //                         is_correct: correctness.is_correct,
+//         //                     })
+//         //                     .where(
+//         //                         and(
+//         //                             eq(slideResults.result_id, resultId),
+//         //                             eq(slideResults.slide_id, correctness.slide_id)
+//         //                         )
+//         //                     );
 
-            return {
-                success: true,
-                updatedSlides,
-            };
-        } catch (dbError) {
-            console.error('Database error:', dbError);
-            return fail(500, { error: 'Database error' });
-        }
-    },
-};
+//         //                 updatedSlides.push({
+//         //                     slide_id: correctness.slide_id,
+//         //                     is_correct: correctness.is_correct,
+//         //                 });
+//         //             }
+//         //         }
+//         //     }
+
+//         //     return {
+//         //         success: true,
+//         //         updatedSlides,
+//         //     };
+//         // } catch (dbError) {
+//         //     console.error('Database error:', dbError);
+//         //     return fail(500, { error: 'Database error' });
+//         // }
+//     },
+// };

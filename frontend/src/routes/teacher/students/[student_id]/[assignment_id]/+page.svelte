@@ -112,17 +112,17 @@
         saveMessage = null;
 
         try {
-            const formData = new FormData();
-            formData.append('assignmentId', assignment.id);
-            formData.append('studentId', student.id.toString());
-            if (comments.length > 0) {
-                formData.append('comments', JSON.stringify(comments));
-            }
-            if (correctnesses.length > 0) {
-                formData.append('correctnesses', JSON.stringify(correctnesses));
-            }
+            // const formData = new FormData();
+            // formData.append('assignmentId', assignment.id);
+            // formData.append('studentId', student.id.toString());
+            // if (comments.length > 0) {
+            //     formData.append('comments', JSON.stringify(comments));
+            // }
+            // if (correctnesses.length > 0) {
+            //     formData.append('correctnesses', JSON.stringify(correctnesses));
+            // }
 
-            const response = await fetch(`/teacher/students/${student.id}/${assignment.id}`, {
+            const response = await fetch(`/api/teacher/students/student/assignment`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json" 
