@@ -167,6 +167,7 @@ public class StudentAssignmentResultService {
             }
         }
 
+        // TODO: revisit logic
         List<CorrectnessDto> correctnesses = requestBody.correctnesses();
         List<UpdatedSlidesDto> updatedSlides = new ArrayList<>();
         if (!correctnesses.isEmpty()) {
