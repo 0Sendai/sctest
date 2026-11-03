@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -64,9 +65,19 @@ public class Slide {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "currentSlide")
     private List<AssignmentResult> assignmentResults;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "slide")
+    @OneToMany(
+        fetch = FetchType.LAZY, 
+        mappedBy = "slide",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
     private List<SlideResult> slideResults;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "slide")
+    @OneToMany(
+        fetch = FetchType.LAZY, 
+        mappedBy = "slide",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
     private List<SlideComment> slideComments;
 }
