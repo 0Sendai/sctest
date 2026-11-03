@@ -9,8 +9,8 @@ import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import ru.sctest.backend.db.model.Assignment;
 import ru.sctest.backend.db.model.AssignmentResult;
 import ru.sctest.backend.db.model.Slide;
@@ -129,7 +129,7 @@ public class StudentAssignmentResultService {
         );
     }
 
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public PostResponse updateCorrectness(PostRequestDto requestBody) {
         Long studId = requestBody.studentId();
         if (studId == null) {

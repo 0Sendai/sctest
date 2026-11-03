@@ -3,8 +3,8 @@ package ru.sctest.backend.teacher.students.create;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import ru.sctest.backend.db.model.User;
 import ru.sctest.backend.db.model.UserRole;
@@ -12,7 +12,7 @@ import ru.sctest.backend.db.repo.UserRepository;
 
 @Service
 @Slf4j 
-@Transactional(rollbackOn = Exception.class)
+@Transactional(rollbackFor = Exception.class)
 public class CreateStudentService {
 
     @Autowired 

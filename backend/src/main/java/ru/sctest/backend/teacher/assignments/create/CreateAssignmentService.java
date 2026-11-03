@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import ru.sctest.backend.db.repo.AssignmentRepository;
 import ru.sctest.backend.db.repo.AssignmentResultRepository;
@@ -41,7 +41,7 @@ public class CreateAssignmentService {
         return studentDtos;
     }
 
-    @Transactional(rollbackOn = Exception.class)
+    @Transactional(rollbackFor = Exception.class)
     public Boolean createAssignment(AssignmentDto assignmentDto, Long id) 
         throws AssignmentCreateException {
         String title = assignmentDto.title();

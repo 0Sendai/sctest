@@ -10,8 +10,8 @@ import java.util.NoSuchElementException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.transaction.Transactional;
 import ru.sctest.backend.db.repo.AssignmentRepository;
 import ru.sctest.backend.db.repo.AssignmentResultRepository;
 import ru.sctest.backend.db.repo.SlideRepository;
@@ -65,7 +65,7 @@ public class EditService {
         );
     }
 
-    @Transactional(rollbackOn = Exception.class) 
+    @Transactional(rollbackFor = Exception.class) 
     public Boolean editAssignment(PostRequest requestBody) throws Exception {
         UUID assignmentId = requestBody.assignmentId();
         if (assignmentId == null)
