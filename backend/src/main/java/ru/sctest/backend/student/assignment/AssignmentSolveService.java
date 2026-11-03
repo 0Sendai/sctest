@@ -54,6 +54,8 @@ public class AssignmentSolveService {
             Map<String, Object> slideContent = slide.getContent();
             Map<String, Object> content = new HashMap<>();
             content.put("question", slideContent.get("question"));
+            if (slide.getType().equals("quiz")) 
+                content.put("variants", slideContent.get("variants"));
             return new SlideDto(
                 slide.getId(), 
                 slide.getType(), 
