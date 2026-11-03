@@ -121,6 +121,14 @@ public class EditService {
 
         assignment.getAssignmentResults().clear();
         assignmentResultRepository.flush();
+
+        Slide firstSlide = slides.getFirst();
+        for (var slide: slides) {
+            if (slide.getPosition() == 0) {
+                firstSlide = slide;
+                break;
+            }
+        }
         final List<Long> students = requestBody.studentIdsJson();
         if (!students.isEmpty()) { 
             List<AssignmentResult> assignmentResults = new ArrayList<>();
@@ -131,7 +139,7 @@ public class EditService {
                 assignmentResult.setAssignment(assignment);
                 assignmentResult.setStudent(student);
                 assignmentResult.setIsGraded(false);
-                assignmentResult.setCurrentSlide(slides.get(0));
+                assignmentResult.setCurrentSlide(firstSlide);
                 assignmentResults.add(assignmentResult);
             }
             assignment.getAssignmentResults().addAll(assignmentResults);

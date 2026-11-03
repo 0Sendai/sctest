@@ -114,6 +114,13 @@ public class CreateAssignmentService {
         
         
         assignment.setSlides(resultSlides);
+        Slide firstSlide = resultSlides.getFirst();
+        for (var slide: resultSlides) {
+            if (slide.getPosition() == 0) {
+                firstSlide = slide;
+                break;
+            }
+        }
         
         log.info("assignment was added");
 
@@ -126,6 +133,7 @@ public class CreateAssignmentService {
             ar.setStatus(AssignmentResultStatus.NOT_STARTED);
             ar.setStudent(student);
             ar.setAssignment(assignment);
+            ar.setCurrentSlide(firstSlide);
             ar.setIsGraded(false);
             assignmentResultRepository.save(ar);
         }
