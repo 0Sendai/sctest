@@ -42,13 +42,23 @@ public class CreateAssignmentService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public Boolean createAssignment(AssignmentDto assignmentDto, Long id) 
+    public Boolean createAssignment(AssignmentDto assignmentDto) 
         throws AssignmentCreateException {
         String title = assignmentDto.title();
         if (title == null || title.isBlank()) {
             throw new AssignmentCreateException("bad title");
         }
         title = title.strip();
+        final Long teacherId = assignmentDto.teacherId();
+        if (teacherId == null) {
+            throw new AssignmentCreateException("teacherId is null");
+        }
+
+        User teacher = userRepository.getReferenceById(teacherId);
+        Assignment assignment = new Assignment();
+        assignment.setAuthor(teacher);
+        assignment.setTitle(title);
+        assignmentRepository.save(assignment);
 
         List<Map<String,Object>> slides = assignmentDto.slides();
         if (slides == null || slides.isEmpty())
@@ -67,6 +77,7 @@ public class CreateAssignmentService {
             Slide slide = new Slide();
             slide.setType(type);
             slide.setPosition(i);
+            slide.setAssignment(assignment);
             if (type.equals("text")) {
                 Map<String, Object> content = Map.of(
                     "question", question
@@ -100,12 +111,10 @@ public class CreateAssignmentService {
             }
             resultSlides.add(slide);
         }
-        User teacher = userRepository.getReferenceById(id);
-        Assignment assignment = new Assignment();
-        assignment.setAuthor(teacher);
-        assignment.setTitle(title);
+        
+        
         assignment.setSlides(resultSlides);
-        assignmentRepository.save(assignment);
+        
         log.info("assignment was added");
 
         List<Long> studentIds = assignmentDto.studentIds();
@@ -117,6 +126,7 @@ public class CreateAssignmentService {
             ar.setStatus(AssignmentResultStatus.NOT_STARTED);
             ar.setStudent(student);
             ar.setAssignment(assignment);
+            ar.setIsGraded(false);
             assignmentResultRepository.save(ar);
         }
         return true;

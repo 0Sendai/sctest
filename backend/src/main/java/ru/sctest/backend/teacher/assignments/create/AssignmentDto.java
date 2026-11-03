@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 
 public record AssignmentDto(
+    Long teacherId,
     String title,
     List<Map<String,Object>> slides,
     List<Long> studentIds
