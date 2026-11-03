@@ -1,7 +1,9 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
+    import { page } from '$app/state';
 
-    let { data, form } = $props();
+    let { data } = $props();
+    let error = $state('');
 
     interface Student {
         id: number;
@@ -46,8 +48,8 @@
 
         return { slides: initialSlides, title: initialTitle, studentIds: initialStudentIds, students: initialStudents };
     })();
-    let slides: Slide[] = $state.snapshot(init.slides);
-    let hiddenValue = $derived(JSON.stringify(slides));
+    let slides: Slide[] = $state(init.slides);
+    //let hiddenValue = $derived(JSON.stringify(slides));
     let title = $state(init.title);
     let errorMsg = $state({ title: '', slides: [] as string[] });
 
@@ -97,7 +99,7 @@
         return selectedStudentIds.length;
     }
 
-    let studentIdsJson = $derived(JSON.stringify(selectedStudentIds));
+    //let studentIdsJson = $derived(JSON.stringify(selectedStudentIds));
 
     function addSlide() {
         slides.push({
@@ -167,6 +169,31 @@
             cancel();
             return;
         }
+
+    }
+
+    async function handleSubmit(event: SubmitEvent) {
+        if (!validateAll()) return;
+        event.preventDefault();
+        const response = await fetch(
+            '/api/teacher/assignments/edit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    assignmentId: page.params.assignment_id,
+                    title: title,
+                    slides: slides,
+                    studentIdsJson: selectedStudentIds
+                })
+            }
+        );
+        const msg = await response.text();
+        if (!response.ok) {
+            error = msg;
+        } else {
+            window.location.href = '/teacher/assignments';
+        }
+
     }
 
     function disableEnter(e: KeyboardEvent) {
@@ -189,18 +216,20 @@
             <p class="subtitle">Измените заголовок и настройте слайды</p>
         </div>
 
-        {#if form?.error}
+        {#if error != ''}
             <div class="error-banner">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
                     <line x1="9" y1="9" x2="15" y2="15"/>
                 </svg>
-                <span>{form.error}</span>
+                <span>{error}</span>
             </div>
         {/if}
 
-        <form method="POST" use:enhance={enhanceFunc}>
+        <form method="POST" 
+        //use:enhance={enhanceFunc}>
+        onsubmit={handleSubmit}>
             <div class="form-group">
                 <label for="title">Заголовок задания</label>
                 <input
@@ -299,8 +328,9 @@
                 {/each}
             </div>
 
+            <!--
             <input type="hidden" id="slides-json" name="slides" bind:value={hiddenValue}/>
-
+            -->
             <!-- Student Selection Section -->
             <div class="students-section">
                 <div class="section-header">
@@ -368,8 +398,9 @@
             </button>
 
             <!-- Hidden input for selected student IDs (JSON) -->
+            <!--
             <input type="hidden" name="studentIdsJson" bind:value={studentIdsJson}/>
-
+            -->
             <button type="submit" class="btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
