@@ -112,6 +112,7 @@ public class EditService {
         final List<Slide> oldSlides = assignment.getSlides();
         slideRepository.deleteAll(oldSlides);
         slideRepository.flush();
+        slideRepository.saveAllAndFlush(slides);
         assignment.setSlides(slides);
 
         assignmentResultRepository.deleteAllByAssignment(assignment);
