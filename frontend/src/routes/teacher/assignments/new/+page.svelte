@@ -21,9 +21,10 @@
         correctVariantIndex: 0,
     }]);
 
-    let hiddenValue = $derived(JSON.stringify(slides));
+    //let hiddenValue = $derived(JSON.stringify(slides));
     let title = $state('');
     let errorMsg = $state({ title: '', slides: [] as string[] });
+    let error = $state('');
 
     // Student selection state
     let selectedStudentIds = $state<number[]>([]);
@@ -34,23 +35,23 @@
     }
 
     const filteredStudents = $derived(
-        data.students.filter(s =>
+        data.students.filter((s: Student) =>
             s.name.toLowerCase().includes(searchQuery.toLowerCase())
         )
     );
 
     const allSelected = $derived(
         filteredStudents.length > 0 &&
-        filteredStudents.every(s => hasStudentId(s.id))
+        filteredStudents.every((s: Student) => hasStudentId(s.id))
     );
 
     const partiallySelected = $derived(
-        !allSelected && filteredStudents.some(s => hasStudentId(s.id))
+        !allSelected && filteredStudents.some((s: Student) => hasStudentId(s.id))
     );
 
     function toggleSelectAll() {
         if (allSelected) {
-            selectedStudentIds = filteredStudents.map(s => s.id);
+            selectedStudentIds = filteredStudents.map((s: Student) => s.id);
         } else {
             selectedStudentIds = [];
         }
@@ -69,7 +70,7 @@
         return selectedStudentIds.length;
     }
 
-    let studentIdsJson = $derived(JSON.stringify(selectedStudentIds));
+    //let studentIdsJson = $derived(JSON.stringify(selectedStudentIds));
 
     function addSlide() {
         slides.push({
@@ -146,6 +147,28 @@
             e.preventDefault();
         }
     }
+
+    async function handleSubmit(event: SubmitEvent) {
+        if (!validateAll()) return;
+        event.preventDefault();
+        const response = await fetch('/api/teacher/assignments/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                teacherId: data.teacherId,
+                title: title,
+                slides: slides,
+                studentIds: selectedStudentIds
+            })
+        });
+        const msg = await response.text();
+        if (!response.ok) {
+            error = msg;
+        } else {
+            window.location.href = "/teacher/assignments";
+        }
+    }
+
 </script>
 
 <div class="new-assignment-container">
@@ -161,18 +184,21 @@
             <p class="subtitle">Добавьте заголовок и настройте слайды</p>
         </div>
 
-        {#if form?.error}
+        {#if error}
             <div class="error-banner">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="15" y1="9" x2="9" y2="15"/>
                     <line x1="9" y1="9" x2="15" y2="15"/>
                 </svg>
-                <span>{form.error}</span>
+                <span>{error}</span>
             </div>
         {/if}
 
-        <form method="POST" use:enhance={enhanceFunc}>
+        <form method="POST" 
+         //use:enhance={enhanceFunc}>
+         onsubmit={handleSubmit}>
+        
             <div class="form-group">
                 <label for="title">Заголовок задания</label>
                 <input
@@ -275,8 +301,9 @@
                 {/each}
             </div>
 
+            <!--
             <input type="hidden" id="slides-json" name="slides" bind:value={hiddenValue}/>
-
+            -->
             <!-- Student Selection Section -->
             <div class="students-section">
                 <div class="section-header">
@@ -344,8 +371,9 @@
             </button>
 
             <!-- Hidden input for selected student IDs (JSON) -->
+             <!--
             <input type="hidden" name="studentIdsJson" bind:value={studentIdsJson}/>
-
+            -->
             <button type="submit" class="btn-primary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
