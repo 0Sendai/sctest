@@ -14,7 +14,7 @@ export async function load({ locals }) {
         throw  error(500, 'bad response from server');
     }
     const results = await response.json();
-    console.log(results);
+    //console.log(results);
     return { results: results["results"] };
 }
 
