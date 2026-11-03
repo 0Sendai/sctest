@@ -110,15 +110,22 @@ export async function load({ locals }) {
         throw error(500, 'bad user id');
     }
 
+    const response = await fetch(
+        'http://127.0.0.1:8080/api/teacher/assignments/create'
+    );
+    if (!response.ok) {
+        throw error(500, "can't load students");
+    }
+    const data = await response.json();
+    return { ...data };
+    // const students = await locals.db.select({
+    //     id: users.id,
+    //     name: users.name,
+    // }).from(users)
+    //   .where(eq(users.role, 'student'))
+    //   .orderBy(users.name);
 
-    const students = await locals.db.select({
-        id: users.id,
-        name: users.name,
-    }).from(users)
-      .where(eq(users.role, 'student'))
-      .orderBy(users.name);
-
-    return { students: students };
+    // return { students: students };
 }
 
 export const actions = {
