@@ -109,13 +109,18 @@ public class EditService {
             slide.setAssignment(assignment);
             slides.add(slide);
         }
-        final List<Slide> oldSlides = assignment.getSlides();
-        slideRepository.deleteAll(oldSlides);
-        slideRepository.flush();
-        slideRepository.saveAllAndFlush(slides);
-        assignment.setSlides(slides);
 
-        assignmentResultRepository.deleteAllByAssignment(assignment);
+        List<AssignmentResult> assignResults = 
+            assignmentResultRepository.findAllByAssignment(assignment);
+        assignResults.forEach(ar -> ar.setCurrentSlide(null));
+        assignmentResultRepository.saveAllAndFlush(assignResults);
+        assignment.getSlides().clear();
+        slideRepository.flush();
+        assignment.getSlides().addAll(slides);
+        slideRepository.flush();
+
+        assignment.getAssignmentResults().clear();
+        assignmentResultRepository.flush();
         final List<Long> students = requestBody.studentIdsJson();
         if (!students.isEmpty()) { 
             List<AssignmentResult> assignmentResults = new ArrayList<>();
@@ -126,9 +131,10 @@ public class EditService {
                 assignmentResult.setAssignment(assignment);
                 assignmentResult.setStudent(student);
                 assignmentResult.setIsGraded(false);
+                assignmentResult.setCurrentSlide(slides.get(0));
                 assignmentResults.add(assignmentResult);
             }
-            assignmentResultRepository.saveAll(assignmentResults);
+            assignment.getAssignmentResults().addAll(assignmentResults);
         }
 
         return true;
