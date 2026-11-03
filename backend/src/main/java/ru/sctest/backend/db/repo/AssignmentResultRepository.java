@@ -19,5 +19,6 @@ public interface AssignmentResultRepository
     );
 
     public List<AssignmentResult> findAllByAssignment(Assignment assignment);
+    public List<AssignmentResult> findAllByStudent(User student);
     public void deleteAllByAssignment(Assignment assignment);
 }

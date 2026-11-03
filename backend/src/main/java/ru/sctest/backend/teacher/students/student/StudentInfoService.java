@@ -36,7 +36,7 @@ public class StudentInfoService {
         }
         User student = studentOpt.get();
         List<AssignmentResult> assignmentResults = assignmentResultRepository
-            .findAll();
+            .findAllByStudent(student);
         List<AssignmentDto> assignmentDtos = assignmentResults.stream().map(
             (AssignmentResult r) -> {
                 List<SlideResult> slideResults = slideResultRepository
