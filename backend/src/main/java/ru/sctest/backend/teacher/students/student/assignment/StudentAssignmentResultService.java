@@ -88,7 +88,7 @@ public class StudentAssignmentResultService {
         final List<SlideWithResultsDto> slideDtos = new ArrayList<>();
         final Map<Long, String> slideCommentsMap = new HashMap<>();
 
-        for (int i = 0; i < slides.size(); i++) {
+        for (int i = 0; i < slideResults.size(); i++) {
             Slide curSlide = slides.get(i);
             SlideResult curRes = slideResults.get(i);
             slideDtos.add(new SlideWithResultsDto(
@@ -101,7 +101,11 @@ public class StudentAssignmentResultService {
                 curRes.getAnsweredAt()
             ));
 
-            slideCommentsMap.put(curSlide.getId(), slideComments.get(i).getComment());
+            if (slideComments.size() > i)
+                slideCommentsMap.put(
+                    curSlide.getId(), 
+                    slideComments.get(i).getComment()
+                );
         }
 
         Integer answered = 0, correct = 0, incorrect = 0;
