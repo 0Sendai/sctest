@@ -194,6 +194,7 @@ public class StudentAssignmentResultService {
                 updatedSlides.add(new UpdatedSlidesDto(slide.getId(), cor.isCorrect()));
             }
         }
+        assignmentResult.setIsGraded(true);
         return new PostResponse.Success(
             true,
             updatedSlides
