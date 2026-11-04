@@ -1,6 +1,10 @@
 <script lang="ts">
     let { data } = $props();
 
+    interface Slide {
+        id: number,
+        type: string
+    }
     // Извлекаем данные с проверкой
     const assignment = $derived(data.assignment);
     const slides = $derived(data.slides);
@@ -20,10 +24,11 @@
     const currentAnswer = $derived(currentSlide ? answers[currentSlide.id] : undefined);
     const isFirstSlide = $derived(currentSlideIndex === 0);
     const isLastSlide = $derived(slides && currentSlideIndex === slides.length - 1);
-    const allSlidesCompleted = $derived(slides ? slides.every(s => answers[s.id] !== undefined) : false);
-    const isGraded = $derived(assignmentResult?.status === 'completed' && slides?.some(s => slideComments?.has(s.id) ?? false));
+    const allSlidesCompleted = $derived(slides ? slides.every((s: Slide) => answers[s.id] !== undefined) : false);
+    const isGraded = $derived(assignmentResult?.status === 'completed' && slides?.some((s: Slide) => slideComments?.has(s.id) ?? false));
     const hasComments = $derived(assignmentResult?.status === 'completed' && (slideComments?.size ?? 0) > 0);
 
+    
     // Восстановление прогресса и автоматический старт при загрузке
     $effect(() => {
         if (slides && assignmentResult) {
@@ -33,7 +38,7 @@
             }
             // Восстанавливаем индекс слайда из сохраненного результата
             if (assignmentResult.currentSlideId) {
-                const slideIndex = slides.findIndex(s => s.id === assignmentResult.currentSlideId);
+                const slideIndex = slides.findIndex((s: Slide) => s.id === assignmentResult.currentSlideId);
                 if (slideIndex !== -1) {
                     currentSlideIndex = slideIndex;
                 }
@@ -115,7 +120,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     resultId: assignmentResult.id,
-                    status: 'completed',
+                    status: 'COMPLETED',
                     currentSlideId: currentSlide?.id,
                 }),
             });
@@ -144,13 +149,13 @@
             <h2 class="assignment-title">{assignment?.title}</h2>
             <p class="welcome-description">
                 Вас ждет {slides?.length} {slides?.length === 1 ? 'слайд' : slides?.length === 2 || slides?.length === 3 || slides?.length === 4 ? 'слайда' : 'слайдов'}.
-                {#if slides?.some(s => s.type === 'quiz')}
-                    {#if slides.filter(s => s.type === 'quiz').length > 0}
+                {#if slides?.some((s: Slide) => s.type === 'quiz')}
+                    {#if slides.filter((s: Slide) => s.type === 'quiz').length > 0}
                         Будут вопросы с вариантами ответов.
                     {/if}
                 {/if}
-                {#if slides?.some(s => s.type === 'text')}
-                    {#if slides.filter(s => s.type === 'text').length > 0}
+                {#if slides?.some((s: Slide) => s.type === 'text')}
+                    {#if slides.filter((s: Slide)=> s.type === 'text').length > 0}
                         Также нужно будет написать ответы на вопросы.
                     {/if}
                 {/if}
