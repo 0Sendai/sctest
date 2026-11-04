@@ -33,11 +33,11 @@ public interface SlideResultRepository extends JpaRepository<SlideResult, Long> 
         VALUES (
             :#{#slideRes.assignmentResult.id},
             :#{#slideRes.slide.id},
-            :#{#slideRes.answer},
+            CAST(:#{#slideRes.answer} AS jsonb),
             :#{#slideRes.isCorrect}
         )
         ON CONFLICT (result_id, slide_id)
-        DO UPDATE SET answer = EXCLUDED.answer
+        DO UPDATE SET answer = EXCLUDED.answer, is_correct = EXCLUDED.is_correct
         """, nativeQuery = true)
     public void upsertSlideResult(@Param("slideRes") SlideResult slideResult);
 }
