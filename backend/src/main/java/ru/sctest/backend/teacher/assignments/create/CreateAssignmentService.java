@@ -34,7 +34,7 @@ public class CreateAssignmentService {
     private AssignmentResultRepository assignmentResultRepository;
 
     public List<StudentDto> getStudents() {
-        final List<User> students = userRepository.findAllByRole(UserRole.STUDENT);
+        final List<User> students = userRepository.findAllByRole(UserRole.ROLE_STUDENT);
         final List<StudentDto> studentDtos = students.stream()
         .map(StudentDto::new).collect(Collectors.toList());
 

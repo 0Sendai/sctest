@@ -1,7 +1,7 @@
 package ru.sctest.backend.db.model;
 
 public enum UserRole {
-    ADMIN,
-    TEACHER,
-    STUDENT,
+    ROLE_ADMIN,
+    ROLE_TEACHER,
+    ROLE_STUDENT,
 }

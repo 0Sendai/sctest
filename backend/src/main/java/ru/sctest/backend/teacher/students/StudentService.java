@@ -16,7 +16,7 @@ public class StudentService {
     private UserRepository userRepository;
 
     public List<StudentDto> getStudents() {
-        List<User> students = userRepository.findAllByRole(UserRole.STUDENT);
+        List<User> students = userRepository.findAllByRole(UserRole.ROLE_STUDENT);
         List<StudentDto> studentDtos = students.stream()
             .map(StudentDto::new).toList();
         return studentDtos;

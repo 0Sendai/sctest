@@ -47,7 +47,7 @@ public class EditService {
         if (assignmentOpt.isEmpty())
             throw new EditException("Can't find assignment by id");
         Assignment assignment = assignmentOpt.get();
-        List<User> students = userRepository.findAllByRole(UserRole.STUDENT);
+        List<User> students = userRepository.findAllByRole(UserRole.ROLE_STUDENT);
         List<Slide> slides = assignment.getSlides();
         List<StudentDto> studentDtos = students.stream().map(StudentDto::new)
             .toList();
