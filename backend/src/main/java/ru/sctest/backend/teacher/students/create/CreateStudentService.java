@@ -22,13 +22,14 @@ public class CreateStudentService {
     private UserRepository userRepository;
 
     public Boolean createStudent(String name, String password) throws Exception{
-        User findedUser = userRepository.findByName(name);
+        User findedUser = userRepository.findByName(name)
+            .orElseThrow(() -> new Exception("Can't find user"));
         if (findedUser != null) {
             throw new Exception("User already exists");
         }
         User student = new User();
         student.setName(name);
-        student.setRole(UserRole.STUDENT);
+        student.setRole(UserRole.ROLE_STUDENT);
         String encodedPassword = passwordEncoder.encode(password);
         student.setPassword(encodedPassword);
         userRepository.save(student);
