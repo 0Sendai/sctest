@@ -1,9 +1,9 @@
 import { error } from '@sveltejs/kit';
 
-export async function load({ params, locals }) {
+export async function load({ params, locals, fetch }) {
     const assignmentId = params.assignment_id;
     const response = await fetch(
-        "http://localhost:8080/api/teacher/" + 
+        "/api/teacher/" + 
         `assignments/edit?id=${assignmentId}`
     );
     if (!response.ok)

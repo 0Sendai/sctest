@@ -2,7 +2,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { eq, asc, and, inArray } from 'drizzle-orm';
 import { assignments, slides, assignmentResults, users, slideResults, slideComments } from '$lib/server/db/schema';
 
-export async function load({ params, locals }) {
+export async function load({ params, locals, fetch }) {
     if (!locals.user?.id) {
         return fail(401, { error: 'Unauthorized' });
     }
@@ -11,7 +11,7 @@ export async function load({ params, locals }) {
     const assignmentId = params.assignment_id;
 
     const response = await fetch(
-        'http://127.0.0.1:8080/api/student/assignment' +
+        '/api/student/assignment' +
         `?studentId=${studentId}` +
         `&assignmentId=${assignmentId}`
     );

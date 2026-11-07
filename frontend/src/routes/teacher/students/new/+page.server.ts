@@ -1,7 +1,7 @@
 import { fail } from '@sveltejs/kit';
 
 export const actions = {
-    default: async ({ request, locals }) => {
+    default: async ({ request, locals, fetch }) => {
         const data = await request.formData();
         const name = data.get('name');
         const password = data.get('password');
@@ -13,7 +13,7 @@ export const actions = {
         }
 
         const response = await fetch(
-            'http://127.0.0.1:8080/api/teacher/students/create', { 
+            '/api/teacher/students/create', { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
