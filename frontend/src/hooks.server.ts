@@ -18,14 +18,14 @@ export const handle: Handle = async ({ event, resolve }) => {
         const user: UserPayload | null = getUserFromToken(token);
         if (user) {
             event.locals.user = user;
-            console.log(user);
         }
     }
     return await resolve(event);
 };
 
 export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
-    if (event.url.pathname.startsWith('/api')) {
+    const reqUrl = new URL(request.url);
+    if (reqUrl.pathname.startsWith('/api')) {
         let csrfToken: string | undefined;
         if (event.cookies) {
             csrfToken = event.cookies.get('XSRF-TOKEN');
@@ -36,10 +36,25 @@ export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
         }
         const headers = new Headers(request.headers);
         if (csrfToken) {
-            headers.set('XSRF-TOKEN', csrfToken);
+            headers.set('X-XSRF-TOKEN', csrfToken);
+            headers.delete('host');
         }
-        const newReq = new Request(request, {
-            headers,
+        const cookieHeader = event.request.headers.get('cookie');
+        if (cookieHeader) {
+            headers.set('cookie', cookieHeader);
+        }
+        let targetUrl = request.url;
+        if (reqUrl.hostname === '127.0.0.1' || reqUrl.hostname === 'localhost') {
+            reqUrl.hostname = 'backend';
+            reqUrl.port = '8080';
+            targetUrl = reqUrl.toString();
+        }
+        const newReq = new Request(targetUrl, {
+            headers: headers,
+            method: request.method,
+            body: request.body,
+            // @ts-ignore
+            duplex: 'half',
             credentials: 'include'
         });
         return fetch(newReq);
