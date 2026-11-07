@@ -1,5 +1,5 @@
 import { fail, error } from '@sveltejs/kit';
-import { logout } from '$lib/server/logout';
+import { logout } from '#lib/server/logout.ts';
 
 export async function load({ locals, fetch }) {
     if (!locals.user?.id) {

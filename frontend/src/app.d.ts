@@ -1,6 +1,6 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { UserPayload } from '#lib/server/jwt';
+import type { UserPayload } from '#lib/server/jwt.ts';
 
 declare global {
 	namespace App {

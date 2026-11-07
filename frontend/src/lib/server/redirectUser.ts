@@ -1,5 +1,5 @@
 import { redirect, error } from '@sveltejs/kit';
-import type { UserPayload } from '$lib/server/jwt';
+import type { UserPayload } from '#lib/server/jwt.ts';
 
 export function redirectUser(user: UserPayload) {
     switch (user.role) {

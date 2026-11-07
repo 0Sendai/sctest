@@ -1,8 +1,8 @@
-import type { Handle, HandleFetch } from '@sveltejs/kit';
+import type { Handle, HandleFetch } from '@sveltejs/kit/hooks';
 import { redirect } from '@sveltejs/kit';
-import { getUserFromToken } from '$lib/server/jwt';
-import type { UserPayload } from '$lib/server/jwt';
-import { redirectUser } from '$lib/server/redirectUser';
+import { getUserFromToken } from '#lib/server/jwt.ts';
+import type { UserPayload } from '#lib/server/jwt.ts';
+import { redirectUser } from '#lib/server/redirectUser.ts';
 
 export const handle: Handle = async ({ event, resolve }) => {
     const token = event.cookies.get('AUTH-TOKEN');

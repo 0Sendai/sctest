@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { logout } from '$lib/server/logout';
+import { logout } from '#lib/server/logout.ts';
 
 export const actions = {
     logout: async ({ locals, cookies }) => {
