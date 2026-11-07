@@ -22,9 +22,10 @@
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
-        const data = { username: username, password: password };
+        const data = { name: username, password: password };
         const response = await fetch('/api/login', {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
         });
 
