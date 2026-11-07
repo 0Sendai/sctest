@@ -51,7 +51,6 @@ public class JwtFilter extends OncePerRequestFilter {
         User user = jwtService.extractUser(jwt);
         if (user != null) {
             List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-            System.out.println("\n\nauthority: " + user.getRole().toString());
             authorities.add(new SimpleGrantedAuthority(user.getRole().toString()));
             UsernamePasswordAuthenticationToken authToken = 
                 new UsernamePasswordAuthenticationToken(
