@@ -35,12 +35,13 @@ public class LoginController {
         }
         ResponseCookie cookie = ResponseCookie.from("AUTH-TOKEN", token)
             .httpOnly(true)
+            .path("/")
             .secure(false)
             .maxAge(60 * 60 * 8)
             //.sameSite("Strict")
             .build();
 
-        
+        log.info("auth success");
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .body(new PostResponse.Success("login successfully"));
