@@ -60,8 +60,10 @@ public class SlideResultUpdateService {
             String answerStr = (String)answer;
             isCorrect = variants.indexOf(answerStr) == correctIdx ? true : false;
             // adding quotes
+        }
+        if (slide.getType().equals("quiz") || slide.getType().equals("text")) {
             ObjectMapper mapper = new ObjectMapper();
-            answer = mapper.writeValueAsString(answerStr);
+                answer = mapper.writeValueAsString(answer);
         }
 
         SlideResult slideRes = new SlideResult();
