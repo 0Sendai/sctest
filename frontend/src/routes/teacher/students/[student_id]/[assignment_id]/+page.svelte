@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { apiFetch } from '#lib/api.js';
     import { type ActionData } from './$types';
     let { data } = $props();
 
@@ -122,7 +123,7 @@
             //     formData.append('correctnesses', JSON.stringify(correctnesses));
             // }
 
-            const response = await fetch(`/api/teacher/students/student/assignment`, {
+            const response = await apiFetch(`/api/teacher/students/student/assignment`, {
                 method: 'POST',
                 headers: {
                     "Content-Type": "application/json" 

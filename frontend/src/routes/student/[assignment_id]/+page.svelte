@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { apiFetch } from '#lib/api.js';
+
     let { data } = $props();
 
     interface Slide {
@@ -65,7 +67,7 @@
         errorMessage = null;
 
         try {
-            await fetch('/api/assignments/slideResult', {
+            await apiFetch('/api/assignments/slideResult', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -114,8 +116,10 @@
         isSubmitting = true;
         errorMessage = null;
 
+        await submitSlideResult();
+
         try {
-            await fetch('/api/assignments/assignmentResult', {
+            await apiFetch('/api/assignments/assignmentResult', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

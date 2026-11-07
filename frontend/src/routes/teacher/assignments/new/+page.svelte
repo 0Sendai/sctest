@@ -1,5 +1,6 @@
 <script lang="ts">
     import { enhance } from '$app/forms';
+    import { apiFetch } from '#lib/api.ts';
     interface Student {
         id: number;
         name: string;
@@ -151,7 +152,7 @@
     async function handleSubmit(event: SubmitEvent) {
         if (!validateAll()) return;
         event.preventDefault();
-        const response = await fetch('/api/teacher/assignments/create', {
+        const response = await apiFetch('/api/teacher/assignments/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json'},
             body: JSON.stringify({

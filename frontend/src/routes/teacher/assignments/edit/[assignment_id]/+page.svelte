@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { apiFetch } from '#lib/api.js';
     import { enhance } from '$app/forms';
     import { page } from '$app/state';
 
@@ -175,7 +176,7 @@
     async function handleSubmit(event: SubmitEvent) {
         if (!validateAll()) return;
         event.preventDefault();
-        const response = await fetch(
+        const response = await apiFetch(
             '/api/teacher/assignments/edit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

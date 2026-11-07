@@ -22,6 +22,7 @@
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
+        await fetch('/api/csrf', { credentials: 'include' });
         const data = { name: username, password: password };
         const response = await fetch('/api/login', {
             method: 'POST',
