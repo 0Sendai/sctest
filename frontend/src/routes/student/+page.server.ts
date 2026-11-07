@@ -10,7 +10,6 @@ export async function load({ locals, fetch }) {
     const studentId = locals.user.id;
     const response = await fetch(`/api/student?id=${studentId}`);
     if (!response.ok) {
-        console.log(response)
         throw  error(500, 'bad response from server');
     }
     const results = await response.json();
