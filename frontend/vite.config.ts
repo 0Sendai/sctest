@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
@@ -17,11 +17,6 @@ export default defineConfig({
 			// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 			adapter: adapter(),
 
-			typescript: {
-				config: (config) => {
-					config.include.push('../drizzle.config.ts');
-				}
-			}
 		})
 	],
 	test: {
