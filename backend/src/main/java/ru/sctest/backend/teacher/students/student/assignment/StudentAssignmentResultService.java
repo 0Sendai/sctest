@@ -112,7 +112,7 @@ public class StudentAssignmentResultService {
         final Integer total = slides.size();
         for (var slide: slideResults) {
             answered++;
-            if (slide.getIsCorrect())
+            if (Boolean.TRUE.equals(slide.getIsCorrect()))
                 correct++;
             else
                 incorrect++;

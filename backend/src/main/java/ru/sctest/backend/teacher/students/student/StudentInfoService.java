@@ -50,8 +50,18 @@ public class StudentInfoService {
                     r.getCompletedAt(),
                     assignment.getTitle(),
                     slideResults.size(),
-                    slideResults.stream().filter(sr -> sr.getIsCorrect() == true).count(),
-                    slideResults.stream().filter(sr -> sr.getIsCorrect() == false).count()
+                    slideResults.stream().filter((SlideResult sr) -> {
+                        Boolean correct = sr.getIsCorrect();
+                        if (correct != null && correct == true)
+                            return true;
+                        return false;
+                    }).count(),
+                    slideResults.stream().filter((SlideResult sr) -> {
+                        Boolean correct = sr.getIsCorrect();
+                        if (correct != null && correct == false)
+                            return true;
+                        return false;
+                    }).count()
                 );
             }
         ).toList();
