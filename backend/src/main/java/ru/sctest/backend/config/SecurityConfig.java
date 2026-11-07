@@ -65,7 +65,11 @@ public class SecurityConfig {
             "http://localhost:*", 
             "http://127.0.0.1:*",
             "http://localhost",
-            "http://127.0.0.1"
+            "http://127.0.0.1",
+            "http://sendai-sctest.duckdns.org:*",
+            "http://sendai-sctest.duckdns.org",
+            "https://sendai-sctest.duckdns.org",
+            "https://sendai-sctest.duckdns.org:*"
         ));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
