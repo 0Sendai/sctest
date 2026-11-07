@@ -102,6 +102,13 @@
                 Войти
             </button>
         </form>
+        <div class="demo-accounts">
+            <p class="demo-title">Пробные аккаунты</p>
+            <div>teacher 1234</div>
+            <div>stud1   4321</div>
+            <div>stud2   7890</div>
+            <div>stud3   5678</div>
+        </div>
     </div>
 </div>
 
@@ -250,4 +257,23 @@
     .btn-primary:active {
         transform: translateY(0);
     }
+
+    .demo-accounts {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f5f8fc;
+    border: 1px solid #e5eaf0;
+    border-radius: 8px;
+    color: #4b5563;
+    font-size: 1.5rem;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.demo-title {
+    margin: 0 0 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
 </style>
