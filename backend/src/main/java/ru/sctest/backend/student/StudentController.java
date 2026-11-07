@@ -29,17 +29,9 @@ public class StudentController {
         }
         User student = studentOpt.get();
         List<AssignmentResult> assignmentResults = student.getAssignmentResults();
-        if (assignmentResults.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new StudentResponse.Fail("Assignments not found"));
-        }
         List<AssignmentResultDto> assignmentResultDtos = 
             assignmentResults.stream().map(AssignmentResultDto::new).toList();
 
-        if (assignmentResultDtos.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new StudentResponse.Fail("Can't convert assignmentResults"));
-        }
         return ResponseEntity.status(HttpStatus.OK)
             .body(new StudentResponse.Success(assignmentResultDtos));
     }
