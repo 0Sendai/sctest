@@ -11,7 +11,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
     }
 
     // Проверяем роль студента
-    if (locals.user.role !== 'student') {
+    if (locals.user.role !== 'ROLE_STUDENT') {
         return error(403, 'Forbidden');
     }
 
