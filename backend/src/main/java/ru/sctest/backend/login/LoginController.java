@@ -36,7 +36,7 @@ public class LoginController {
         ResponseCookie cookie = ResponseCookie.from("AUTH-TOKEN", token)
             .httpOnly(true)
             .path("/")
-            .secure(false)
+            .secure(true)
             .maxAge(60 * 60 * 8)
             //.sameSite("Strict")
             .build();
