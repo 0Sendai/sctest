@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { apiFetch } from '#lib/api.js';
     import { type ActionData } from './$types';
+    import LatexView from '#lib/components/LatexView.svelte';
     let { data } = $props();
 
     const student = $derived(data.student);
@@ -277,11 +278,11 @@
 
                         <div class="slide-question">
                             {#if slide.type === 'quiz'}
-                                {(slide.content as any).question}
+                                <LatexView input={(slide.content as any).question}/>
                                 <div class="slide-variants">
                                     {#each (slide.content as any).variants as variant, vIndex (variant)}
                                         <div class="variant-item {slide.studentAnswer === variant ? (slide.isCorrect ? 'variant-correct' : 'variant-incorrect') : ''}">
-                                            {variant}
+                                            <LatexView input={variant}/>
                                             {#if slide.studentAnswer === variant}
                                                 <span class="variant-icon">{slide.isCorrect ? '✓' : '✗'}</span>
                                             {/if}
@@ -289,7 +290,7 @@
                                     {/each}
                                 </div>
                             {:else}
-                                {(slide.content as any).question}
+                                <LatexView input={(slide.content as any).question}/>
                             {/if}
                         </div>
 
