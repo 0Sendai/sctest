@@ -1,4 +1,6 @@
 <script lang="ts">
+	import LatexView from "#lib/components/LatexView.svelte";
+
     let { data } = $props();
 
     const title    = $derived(data.result.title);
@@ -90,17 +92,23 @@
 
                             <div class="slide-question">
                                 {#if slide.type === 'quiz'}
-                                    <p>{(slide.content as any).question}</p>
+                                    <p>
+                                        <LatexView input={(slide.content as any).question}/>
+                                    </p>
                                     <div class="quiz-answers">
                                         {#each (slide.content as any).variants as option, optIndex (option)}
                                             <div class="quiz-option {getSlideAnswer(slide.id) === option ? 'option-correct' : ''}">
                                                 <span class="option-marker">{getSlideAnswer(slide.id) === option ? '✓' : '○'}</span>
-                                                <span class="option-text">{option}</span>
+                                                <span class="option-text">
+                                                    <LatexView input={option}/>
+                                                </span>
                                             </div>
                                         {/each}
                                     </div>
                                 {:else}
-                                    <p>{(slide.content as any).question}</p>
+                                    <p>
+                                        <LatexView input={(slide.content as any).question}/>
+                                    </p>
                                     <div class="text-answer">
                                         <p>{getSlideAnswer(slide.id) ?? '—'}</p>
                                     </div>
