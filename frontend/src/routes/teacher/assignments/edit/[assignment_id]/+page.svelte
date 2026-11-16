@@ -2,6 +2,7 @@
 	import { apiFetch } from '#lib/api.js';
     import { enhance } from '$app/forms';
     import { page } from '$app/state';
+    import LatexInput from '#lib/components/LatexInput.svelte';
 
     let { data } = $props();
     let error = $state('');
@@ -276,12 +277,17 @@
 
                         <div class="form-group">
                             <label for={`slide-question-${index}`}>Вопрос</label>
-                            <input
+                            <!-- <input
                                 type="text"
                                 id={`slide-question-${index}`}
                                 bind:value={slide.question}
                                 placeholder="Введите вопрос"
                                 class:error={errorMsg.slides[index]}
+                                onkeydown={disableEnter}
+                                autocomplete="off"/> -->
+                            <LatexInput bind:input={slide.question}
+                                placeholder="Введите вопрос"
+                                class={errorMsg.slides[index] ? 'error' : ''}
                                 onkeydown={disableEnter}
                                 autocomplete="off"/>
                             {#if errorMsg.slides[index]}
@@ -294,12 +300,17 @@
                                 <div class="section-label">Варианты ответа</div>
                                 {#each slide.variants as variant, variantIndex}
                                     <div class="variant-row">
-                                        <input
+                                        <!-- <input
                                             type="text"
                                             bind:value={slide.variants[variantIndex]}
                                             placeholder={`Вариант ${variantIndex + 1}`}
                                             class:error={errorMsg.slides[index]}
-                                            onkeydown={(e) => handleVariantEnter(index, e)}/>
+                                            onkeydown={(e) => handleVariantEnter(index, e)}/> -->
+                                        <LatexInput
+                                            bind:input={slide.variants[variantIndex]}
+                                            placeholder={`Вариант ${variantIndex + 1}`}
+                                            class={errorMsg.slides[index] ? 'error': ''}
+                                            onkeydown={(e: KeyboardEvent) => handleVariantEnter(index, e)}/>
                                         <label class="correct-answer-label" title="Правильный ответ">
                                             <input
                                                 type="radio"
@@ -715,6 +726,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        height: 42px;
         width: 42px;
         flex-shrink: 0;
         cursor: pointer;
