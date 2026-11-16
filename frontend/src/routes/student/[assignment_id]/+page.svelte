@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { apiFetch } from '#lib/api.js';
+    import LatexView from '#lib/components/LatexView.svelte';
 
     let { data } = $props();
 
@@ -191,7 +192,10 @@
                 <div class="slide-wrapper">
                     {#if currentSlide.type === 'quiz'}
                         <div class="quiz-slide">
-                            <h3 class="quiz-question">{(currentSlide.content as any).question}</h3>
+                            <!-- <h3 class="quiz-question">{(currentSlide.content as any).question}</h3> -->
+                             <h3 class="quiz-question">
+                                <LatexView input={(currentSlide.content as any).question}/>
+                             </h3>
                             <div class="quiz-options">
                                 {#each (currentSlide.content as any).variants as option, index (option)}
                                     <label class="quiz-option {answers[currentSlide.id] === option ? 'selected' : ''}">
@@ -202,14 +206,20 @@
                                             checked={answers[currentSlide.id] === option}
                                             onchange={(e: Event) => handleAnswer((e.target as HTMLInputElement).value)}
                                         />
-                                        <span class="option-text">{option}</span>
+                                        <!-- <span class="option-text">{option}</span> -->
+                                         <span class="option-text">
+                                            <LatexView input={option}/>
+                                         </span>
                                     </label>
                                 {/each}
                             </div>
                         </div>
                     {:else if currentSlide.type === 'text'}
                         <div class="text-slide">
-                            <h3 class="text-question">{(currentSlide.content as any).question}</h3>
+                            <!-- <h3 class="text-question">{(currentSlide.content as any).question}</h3> -->
+                             <h3 class="text-question">
+                                <LatexView input={(currentSlide.content as any).question}/>
+                            </h3>
                             <textarea
                                 class="text-input"
                                 placeholder={(currentSlide.content as any).placeholder || 'Введите ваш ответ...'}
