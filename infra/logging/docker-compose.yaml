@@ -1,0 +1,22 @@
+services:
+  victoria:
+    image: victoriametrics/victoria-logs:v1.54.0
+    command:
+      - -storageDataPath=/victoria-logs-data
+    ports:
+      - "127.0.0.1:9428:9428"
+    volumes:
+      - victoria-logs-data:/victoria-logs-data
+
+  fluent-bit:
+    image: fluent/fluent-bit:5.1.5
+    depends_on: 
+      - victoria
+    ports:
+      - "127.0.0.1:24224:24224"
+      - "127.0.0.1:24224:24224/udp"
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+
+volumes:
+  victoria-logs-data:
