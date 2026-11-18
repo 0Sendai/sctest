@@ -12,7 +12,7 @@ services:
     image: eclipse-temurin:25-jdk
     working_dir: /app
     environment:
-      - spring_profiles_active=prod
+      - spring_profiles_active=dev
     volumes:
       - ./backend:/app
       - ~/.m2:/root/.m2
