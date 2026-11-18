@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25 as builder
+FROM eclipse-temurin:25 AS builder
 WORKDIR /app
 COPY mvnw pom.xml ./
 COPY .mvn ./.mvn
